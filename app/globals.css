@@ -1,0 +1,416 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------ */
+/* Liars Poker Design System                        */
+/* ------------------------------------------------ */
+
+:root {
+  /* Core backgrounds */
+  --lp-bg: #0b0f14;
+  --lp-surface: #121821;
+  --lp-surface-soft: #171f2b;
+  --lp-surface-elevated: #1c2633;
+
+  /* Text */
+  --lp-text: #f5f7fb;
+  --lp-text-soft: #b6c2d1;
+  --lp-text-muted: #7f8b99;
+
+  /* Accent colors */
+  --lp-primary: #2563eb;
+  --lp-primary-hover: #3b82f6;
+
+  --lp-gold: #d4af37;
+  --lp-gold-soft: #f0d77a;
+
+  /* Borders */
+  --lp-border: rgba(255, 255, 255, 0.08);
+  --lp-border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Status */
+  --money-green: #22c55e;
+  --money-red: #ef4444;
+
+  /* Radius */
+  --lp-radius-sm: 10px;
+  --lp-radius-md: 14px;
+  --lp-radius-lg: 18px;
+
+  /* Shadows */
+  --lp-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --lp-shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+/* ------------------------------------------------ */
+/* Base Page                                        */
+/* ------------------------------------------------ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.15), transparent 35%),
+    radial-gradient(circle at 90% 0%, rgba(212, 175, 55, 0.12), transparent 35%),
+    var(--lp-bg);
+  color: var(--lp-text);
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/* ------------------------------------------------ */
+/* Cards                                            */
+/* ------------------------------------------------ */
+
+.lp-card {
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-lg);
+  padding: 20px;
+  box-shadow: var(--lp-shadow-soft);
+}
+
+.lp-card-soft {
+  background: var(--lp-surface-soft);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-md);
+  padding: 16px;
+}
+
+/* ------------------------------------------------ */
+/* Titles                                           */
+/* ------------------------------------------------ */
+
+.lp-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--lp-text);
+}
+
+.lp-title-accent {
+  color: var(--lp-gold);
+}
+
+.lp-subtitle {
+  color: var(--lp-text-soft);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------ */
+/* Buttons                                          */
+/* ------------------------------------------------ */
+
+.lp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: white;
+  text-decoration: none;
+  background: linear-gradient(180deg, var(--lp-primary-hover), var(--lp-primary));
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+.lp-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.45);
+}
+
+.lp-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lp-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--lp-border);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--lp-text);
+  background: rgba(255, 255, 255, 0.05);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.lp-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--lp-border-strong);
+  color: white;
+}
+
+.lp-button-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  background: linear-gradient(180deg, var(--lp-gold-soft), var(--lp-gold));
+  color: #111;
+}
+
+/* ------------------------------------------------ */
+/* Links                                            */
+/* ------------------------------------------------ */
+
+a {
+  color: var(--lp-gold-soft);
+  text-decoration: none;
+}
+
+a:hover {
+  color: white;
+}
+
+.lp-link {
+  color: var(--lp-gold-soft);
+  text-decoration: none;
+}
+
+.lp-link:hover {
+  color: white;
+}
+
+/* ------------------------------------------------ */
+/* Inputs                                           */
+/* ------------------------------------------------ */
+
+input,
+select,
+textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--lp-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--lp-text);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+  color-scheme: dark;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--lp-text-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--lp-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* keep checkboxes/radios from stretching */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  accent-color: var(--lp-primary);
+}
+
+/* ------------------------------------------------ */
+/* Native select / dropdown fixes                   */
+/* ------------------------------------------------ */
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--lp-text);
+  border: 1px solid var(--lp-border);
+  padding-right: 42px;
+  cursor: pointer;
+
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--lp-text-soft) 50%),
+    linear-gradient(135deg, var(--lp-text-soft) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* force option readability */
+select option {
+  background: #111827;
+  color: #f8fafc;
+}
+
+/* helps some browsers keep selected text readable */
+select:focus option,
+select:active option,
+select option:checked {
+  background: #111827;
+  color: #f8fafc;
+}
+
+/* hide old IE arrow if ever relevant */
+select::-ms-expand {
+  display: none;
+}
+
+/* Safari / Chrome autofill cleanup */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--lp-text);
+  -webkit-box-shadow: 0 0 0 1000px #111827 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* ------------------------------------------------ */
+/* Tables                                           */
+/* ------------------------------------------------ */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--lp-text-muted);
+  padding: 12px;
+  border-bottom: 1px solid var(--lp-border);
+}
+
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ------------------------------------------------ */
+/* Badges                                           */
+/* ------------------------------------------------ */
+
+.lp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  color: var(--lp-gold-soft);
+}
+
+.lp-badge-neutral {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--lp-border);
+  color: var(--lp-text-soft);
+}
+
+.lp-badge-success {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  color: #86efac;
+}
+
+/* ------------------------------------------------ */
+/* Money                                            */
+/* ------------------------------------------------ */
+
+.money-positive {
+  color: var(--money-green);
+  font-weight: 600;
+}
+
+.money-negative {
+  color: var(--money-red);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------ */
+/* Scrollbar                                        */
+/* ------------------------------------------------ */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f141b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a3442;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a4758;
+}
