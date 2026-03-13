@@ -6,7 +6,7 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-5xl">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold">Liar&apos;s Poker Dashboard</h1>
-          <UserButton afterSignOutUrl="/sign-in" />
+          <UserButton />
         </div>
 
         <p className="mt-6">Authentication is working.</p>
