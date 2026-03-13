@@ -1,5 +1,5 @@
 "use client"
-
+import GameSessionActions from "../GameSessionActions"
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -257,29 +257,17 @@ export default function ScorerClient({
 
       {cardSaved && (
         <section className="lp-card mb-6">
+
           {!handWillBeCompleteAfterSave ? (
             <>
               <div className="mb-4 text-lg font-bold text-white">
                 Card saved. This hand is not complete yet.
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <button onClick={playAnotherCardInSameHand} className="lp-button">
-                  Enter Next Card In This Hand
-                </button>
-
-                <a href={`/games/${gameId}/scoreboard`} className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
-                  Go to Scoreboard →
-                </a>
-
-                <a href={`/games/${gameId}`} className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
-                  Back to Table →
-                </a>
-
-                <a href="/info" className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
-                  Liar&apos;s Poker Info →
-                </a>
-              </div>
+              <GameSessionActions
+                gameId={gameId}
+                handComplete={false}
+              />
             </>
           ) : (
             <>
@@ -287,29 +275,13 @@ export default function ScorerClient({
                 Hand complete. Review the scoreboard, start a new hand, or finalize the session.
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <a href={`/games/${gameId}/scoreboard`} className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
-                  View Scoreboard →
-                </a>
-
-                <button onClick={playAnotherHand} className="lp-button">
-                  Start New Hand
-                </button>
-
-                <button onClick={finalizeCumCum} className="lp-button">
-                  Finalize Session
-                </button>
-
-                <a href={`/games/${gameId}`} className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
-                  Back to Table →
-                </a>
-
-                <a href="/info" className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
-                  Liar&apos;s Poker Info →
-                </a>
-              </div>
+              <GameSessionActions
+                gameId={gameId}
+                handComplete={true}
+              />
             </>
           )}
+
         </section>
       )}
 
@@ -454,6 +426,17 @@ export default function ScorerClient({
 
               <a href={`/games/${gameId}`} className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
                 Back to Table →
+              </a>
+ 
+              <button onClick={finalizeCumCum} disabled={saving} className="lp-button">
+                Finalize Session
+              </button>
+
+              <a
+                href="/games/new"
+                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+              >
+                Start New Game
               </a>
 
               <a

@@ -1,6 +1,8 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
 
+import GameSessionActions from "./GameSessionActions"
+
 type Game = {
   id: string
   title: string
@@ -306,42 +308,50 @@ export default async function GameTablePage({
 
       <section className="lp-card">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold text-white">Actions</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Jump to the next screen you need.
-          </p>
+          <h2 className="text-2xl font-bold text-white">Session Control</h2>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <a
-            href={`/games/${gameId}/players`}
-            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-          >
-            Players
-          </a>
 
           <a
             href={`/games/${gameId}/scorer`}
             className="lp-button inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
           >
-            Scorer
+            {progress?.hand_complete ? "Start New Hand" : "Continue Current Hand"}
           </a>
 
           <a
             href={`/games/${gameId}/scoreboard`}
-            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+            className="lp-button-secondary"
           >
-            Scoreboard
+            View Scoreboard
           </a>
 
-          <a
-            href={`/info?gameId=${gameId}`}
-            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          <button
+            onClick={async () => {
+              await fetch(`${API_BASE}/games/${gameId}/finalize`, {
+                method: "POST",
+              })
+              location.reload()
+            }}
+            className="lp-button"
           >
-            Liar&apos;s Poker Info
+            Finalize Session
+          </button>
+
+          <a
+            href="/games/new"
+            className="lp-button-secondary"
+          >
+            Start New Game
           </a>
+
         </div>
       </section>
+      <GameSessionActions
+        gameId={gameId}
+        handComplete={Boolean(progress?.hand_complete)}
+      />
     </main>
   )
 }

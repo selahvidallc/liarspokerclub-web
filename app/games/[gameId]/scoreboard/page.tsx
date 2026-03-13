@@ -1,3 +1,5 @@
+import GameSessionActions from "../GameSessionActions"
+
 type HandPlayerRow = {
   player_id: string
   display_name: string
@@ -44,6 +46,28 @@ function amountClass(v: number) {
   return "text-slate-300"
 }
 
+type HandProgress = {
+  game_id: string
+  cards_per_hand: number
+  current_hand_number: number
+  cards_played_in_current_hand: number
+  cards_remaining_in_current_hand: number
+  hand_complete: boolean
+}
+
+async function getHandProgress(gameId: string) {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
+  const res = await fetch(`${base}/games/${gameId}/hand-progress`, {
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    return null as HandProgress | null
+  }
+
+  return res.json() as Promise<HandProgress | null>
+}
+
 async function getScoreboardSession(gameId: string) {
   const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
   const res = await fetch(`${base}/games/${gameId}/scoreboard/session`, {
@@ -80,7 +104,10 @@ export default async function Page({
     )
   }
 
-  const data = await getScoreboardSession(gameId)
+  const [data, progress] = await Promise.all([
+    getScoreboardSession(gameId),
+    getHandProgress(gameId),
+  ])
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
