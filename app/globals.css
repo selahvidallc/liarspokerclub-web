@@ -216,9 +216,15 @@ a:hover {
 /* Inputs                                           */
 /* ------------------------------------------------ */
 
-input,
-select,
-textarea {
+.lp-card input,
+.lp-card select,
+.lp-card textarea,
+.lp-card-soft input,
+.lp-card-soft select,
+.lp-card-soft textarea,
+main input,
+main select,
+main textarea {
   width: 100%;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--lp-border);
@@ -233,22 +239,36 @@ textarea {
   color-scheme: dark;
 }
 
-input::placeholder,
-textarea::placeholder {
+.lp-card input::placeholder,
+.lp-card textarea::placeholder,
+.lp-card-soft input::placeholder,
+.lp-card-soft textarea::placeholder,
+main input::placeholder,
+main textarea::placeholder {
   color: var(--lp-text-muted);
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+.lp-card input:focus,
+.lp-card select:focus,
+.lp-card textarea:focus,
+.lp-card-soft input:focus,
+.lp-card-soft select:focus,
+.lp-card-soft textarea:focus,
+main input:focus,
+main select:focus,
+main textarea:focus {
   border-color: var(--lp-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   background: rgba(255, 255, 255, 0.06);
 }
 
 /* keep checkboxes/radios from stretching */
-input[type="checkbox"],
-input[type="radio"] {
+.lp-card input[type="checkbox"],
+.lp-card input[type="radio"],
+.lp-card-soft input[type="checkbox"],
+.lp-card-soft input[type="radio"],
+main input[type="checkbox"],
+main input[type="radio"] {
   width: auto;
   accent-color: var(--lp-primary);
 }
@@ -297,12 +317,21 @@ select::-ms-expand {
   display: none;
 }
 
-/* Safari / Chrome autofill cleanup */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
+.lp-card input:-webkit-autofill,
+.lp-card input:-webkit-autofill:hover,
+.lp-card input:-webkit-autofill:focus,
+.lp-card textarea:-webkit-autofill,
+.lp-card select:-webkit-autofill,
+.lp-card-soft input:-webkit-autofill,
+.lp-card-soft input:-webkit-autofill:hover,
+.lp-card-soft input:-webkit-autofill:focus,
+.lp-card-soft textarea:-webkit-autofill,
+.lp-card-soft select:-webkit-autofill,
+main input:-webkit-autofill,
+main input:-webkit-autofill:hover,
+main input:-webkit-autofill:focus,
+main textarea:-webkit-autofill,
+main select:-webkit-autofill {
   -webkit-text-fill-color: var(--lp-text);
   -webkit-box-shadow: 0 0 0 1000px #111827 inset;
   transition: background-color 9999s ease-in-out 0s;
