@@ -34,10 +34,8 @@ type SyncResult = {
 }
 
 export default function NewGameClient({
-  users,
   presets,
 }: {
-  users: User[]
   presets: Preset[]
 }) {
   const router = useRouter()
@@ -77,7 +75,9 @@ export default function NewGameClient({
 
   useEffect(() => {
     if (!isLoaded) return
-    if (!user?.primaryEmailAddress?.emailAddress) {
+
+    const email = user?.primaryEmailAddress?.emailAddress
+    if (!email) {
       setSyncingUser(false)
       setMsg("No signed-in user email found.")
       return
@@ -91,7 +91,7 @@ export default function NewGameClient({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: user.primaryEmailAddress.emailAddress,
+            email,
             display_name:
               user.fullName ||
               user.username ||

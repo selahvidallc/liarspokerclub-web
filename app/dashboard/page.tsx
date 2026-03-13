@@ -33,13 +33,18 @@ export default function DashboardPage() {
       try {
         setError(null);
 
+        const email = user?.primaryEmailAddress?.emailAddress;
+        if (!email) {
+          throw new Error("Signed-in user does not have a primary email");
+        }
+
         const syncRes = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/sync`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email: user.primaryEmailAddress.emailAddress,
+              email,
               display_name:
                 user.fullName ||
                 user.username ||
