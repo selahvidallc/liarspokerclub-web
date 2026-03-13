@@ -1,11 +1,5 @@
 import NewGameClient from "./NewGameClient"
 
-type User = {
-  id: string
-  email: string
-  display_name: string
-}
-
 type Preset = {
   id: string
   name: string
@@ -19,13 +13,6 @@ type Preset = {
   is_favorite: boolean
 }
 
-async function getUsers() {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
-  const res = await fetch(`${base}/users`, { cache: "no-store" })
-  if (!res.ok) throw new Error(await res.text())
-  return res.json() as Promise<User[]>
-}
-
 async function getPresets() {
   const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
   const res = await fetch(`${base}/presets/games?favorites_only=false`, {
@@ -36,7 +23,7 @@ async function getPresets() {
 }
 
 export default async function Page() {
-  const [users, presetData] = await Promise.all([getUsers(), getPresets()])
+  const presetData = await getPresets()
 
   return (
     <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
@@ -44,7 +31,7 @@ export default async function Page() {
         Create New Game
       </h1>
 
-      <NewGameClient users={users} presets={presetData.presets} />
+      <NewGameClient presets={presetData.presets} />
     </main>
   )
 }

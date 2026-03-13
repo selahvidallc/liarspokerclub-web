@@ -1,7 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
@@ -25,6 +26,13 @@ type Preset = {
   is_favorite: boolean
 }
 
+type SyncResult = {
+  id: string
+  email: string
+  display_name: string
+  created: boolean
+}
+
 export default function NewGameClient({
   users,
   presets,
@@ -33,6 +41,7 @@ export default function NewGameClient({
   presets: Preset[]
 }) {
   const router = useRouter()
+  const { user, isLoaded } = useUser()
 
   const defaultPreset =
     presets.find((p) => p.name.includes("5 Card Progressive 10-15-20-25-30")) ||
@@ -43,8 +52,9 @@ export default function NewGameClient({
   const [presetId, setPresetId] = useState(defaultPreset?.id ?? "")
 
   const [title, setTitle] = useState("Liar's Poker Game")
-  const [createdBy, setCreatedBy] = useState(users[0]?.id ?? "")
-  const [scorekeeper, setScorekeeper] = useState(users[0]?.id ?? "")
+  const [createdBy, setCreatedBy] = useState("")
+  const [scorekeeper, setScorekeeper] = useState("")
+  const [appUser, setAppUser] = useState<SyncResult | null>(null)
 
   const [settlementMode, setSettlementMode] = useState("PER_HAND")
 
@@ -58,11 +68,56 @@ export default function NewGameClient({
 
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState("")
+  const [syncingUser, setSyncingUser] = useState(true)
 
   const selectedPreset = useMemo(
     () => presets.find((p) => p.id === presetId) || null,
     [presetId, presets]
   )
+
+  useEffect(() => {
+    if (!isLoaded) return
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      setSyncingUser(false)
+      setMsg("No signed-in user email found.")
+      return
+    }
+
+    const syncUser = async () => {
+      try {
+        setSyncingUser(true)
+
+        const res = await fetch(`${API_BASE}/users/sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.primaryEmailAddress.emailAddress,
+            display_name:
+              user.fullName ||
+              user.username ||
+              user.firstName ||
+              "Player",
+          }),
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          throw new Error(data?.detail || "Failed to sync signed-in user")
+        }
+
+        setAppUser(data)
+        setCreatedBy(data.id)
+        setScorekeeper(data.id)
+      } catch (e: any) {
+        setMsg(`Error: ${e?.message || String(e)}`)
+      } finally {
+        setSyncingUser(false)
+      }
+    }
+
+    syncUser()
+  }, [isLoaded, user])
 
   function parseLadder(input: string): number[] {
     return input
@@ -77,7 +132,7 @@ export default function NewGameClient({
     setMsg("")
 
     if (!createdBy || !scorekeeper) {
-      setMsg("Pick both Created By and Scorekeeper.")
+      setMsg("Signed-in user is not ready yet.")
       return
     }
 
@@ -193,34 +248,22 @@ export default function NewGameClient({
               <label className="mb-2 block text-sm font-semibold text-slate-300">
                 Created By
               </label>
-              <select
-                value={createdBy}
-                onChange={(e) => setCreatedBy(e.target.value)}
-              >
-                <option value="">Select</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.display_name}
-                  </option>
-                ))}
-              </select>
+              <input
+                value={appUser?.display_name || ""}
+                readOnly
+                placeholder={syncingUser ? "Syncing signed-in user..." : "Not available"}
+              />
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
                 Scorekeeper
               </label>
-              <select
-                value={scorekeeper}
-                onChange={(e) => setScorekeeper(e.target.value)}
-              >
-                <option value="">Select</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.display_name}
-                  </option>
-                ))}
-              </select>
+              <input
+                value={appUser?.display_name || ""}
+                readOnly
+                placeholder={syncingUser ? "Syncing signed-in user..." : "Not available"}
+              />
             </div>
           </div>
         </section>
@@ -449,8 +492,12 @@ export default function NewGameClient({
         </section>
 
         <div className="flex flex-wrap gap-3">
-          <button onClick={submit} disabled={saving} className="lp-button">
-            {saving ? "Creating..." : "Create Game"}
+          <button
+            onClick={submit}
+            disabled={saving || syncingUser || !appUser}
+            className="lp-button"
+          >
+            {saving ? "Creating..." : syncingUser ? "Preparing User..." : "Create Game"}
           </button>
 
           <a
