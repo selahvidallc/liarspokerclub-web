@@ -394,6 +394,10 @@ export default async function Page({
           </div>
         </section>
       </div>
+      <GameSessionActions
+        gameId={gameId}
+        handComplete={Boolean(progress?.hand_complete)}
+      />
     </main>
   )
 }
