@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import GameSessionActions from "../GameSessionActions"
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
@@ -219,14 +220,6 @@ export default function ScorerClient({
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <button onClick={playAnotherHand} style={actionBtn}>
-              Play Another Hand
-            </button>
-
-            <button onClick={finalizeCumCum} style={actionBtn}>
-              Finalize Session (Cum Cum)
-            </button>
-
             <a href={`/games/${gameId}/scoreboard`} style={linkBtn}>
               Go to Scoreboard →
             </a>
@@ -365,17 +358,6 @@ export default function ScorerClient({
           </div>
 
           <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-            <button
-              onClick={submit}
-              disabled={saving}
-              style={{
-                padding: "10px 14px",
-                fontWeight: 700,
-                cursor: saving ? "not-allowed" : "pointer",
-              }}
-            >
-              {saving ? "Saving..." : "Finalize Hand"}
-            </button>
 
             <a href={`/games/${gameId}/scoreboard`} style={{ opacity: 0.85 }}>
               Go to Scoreboard →
@@ -387,6 +369,10 @@ export default function ScorerClient({
           </div>
         </div>
       )}
+      <GameSessionActions
+        gameId={gameId}
+        handComplete={true}
+      />
     </main>
   )
 }
