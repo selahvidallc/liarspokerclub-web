@@ -326,19 +326,7 @@ export default async function GameTablePage({
           >
             View Scoreboard
           </a>
-
-          <button
-            onClick={async () => {
-              await fetch(`${API_BASE}/games/${gameId}/finalize`, {
-                method: "POST",
-              })
-              location.reload()
-            }}
-            className="lp-button"
-          >
-            Finalize Session
-          </button>
-
+          
           <a
             href="/games/new"
             className="lp-button-secondary"
