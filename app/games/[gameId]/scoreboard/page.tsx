@@ -111,7 +111,7 @@ export default async function Page({
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      <div className="mb-8">
         <div>
           <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
             Scoreboard
@@ -128,23 +128,6 @@ export default async function Page({
             </code>
           </div>
         </div>
-
-        <div className="flex flex-wrap gap-3">
-          <a
-            href={`/games/${gameId}`}
-            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-          >
-            Back to Table
-          </a>
-
-          <a
-            href={`/games/${gameId}/scorer`}
-            className="lp-button inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-          >
-            Go to Scorer
-          </a>
-        </div>
-      </div>
 
       <div className="grid gap-6">
         {data.hands.map((hand) => (
@@ -356,43 +339,6 @@ export default async function Page({
           </div>
         </section>
 
-        <section className="lp-card">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold text-white">Quick Actions</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Move between the main game screens.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <a
-              href={`/games/${gameId}`}
-              className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-            >
-              Back to Table
-            </a>
-
-            <a
-              href={`/games/${gameId}/players`}
-              className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-            >
-              Manage Players
-            </a>
-
-            <a
-              href={`/games/${gameId}/scorer`}
-              className="lp-button inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-            >
-              Enter Scores
-            </a>
-            <a
-              href={`/info?gameId=${gameId}`}
-              className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-            >
-              Liar&apos;s Poker Info
-            </a>
-          </div>
-        </section>
       </div>
       <GameSessionActions
         gameId={gameId}
