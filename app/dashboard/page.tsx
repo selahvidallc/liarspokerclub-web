@@ -17,6 +17,8 @@ type Game = {
   settlement_mode: string;
   cards_per_hand: number;
   base_bet: string | number;
+  status: string;
+  finalized_at: string | null;
 };
 
 export default function DashboardPage() {
@@ -154,7 +156,7 @@ export default function DashboardPage() {
               {games.map((game) => (
                 <Link
                   key={game.id}
-                  href={`/games/${game.id}`}
+                  href={game.status === "FINALIZED" ? `/games/${game.id}/scoreboard` : `/games/${game.id}`}
                   className="lp-card-soft hover:opacity-90"
                 >
                   <div className="flex items-center justify-between gap-4">
@@ -163,12 +165,11 @@ export default function DashboardPage() {
                         {game.title}
                       </div>
                       <div className="mt-1 text-sm text-slate-400">
-                        {game.settlement_mode} • {game.cards_per_hand} cards • $
-                        {game.base_bet}
+                        {game.settlement_mode} • {game.cards_per_hand} cards • ${game.base_bet} • {game.status}
                       </div>
                     </div>
                     <div className="text-sm font-semibold text-slate-300">
-                      Open →
+                      {game.status === "FINALIZED" ? "View Scoreboard →" : "Open Table →"}
                     </div>
                   </div>
                 </Link>
