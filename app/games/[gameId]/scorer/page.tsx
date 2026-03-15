@@ -2,6 +2,11 @@ import ScorerClient from "./ScorerClient"
 
 type Player = { id: string; display_name: string }
 
+type Game = {
+  id: string
+  scorekeeper_user_id: string
+}
+
 type GameSettings = {
   id: string
   title: string
@@ -45,6 +50,13 @@ async function getHandProgress(gameId: string) {
   return res.json() as Promise<HandProgress>
 }
 
+async function getGame(gameId: string) {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
+  const res = await fetch(`${base}/games/${gameId}`, { cache: "no-store" })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json() as Promise<Game>
+}
+
 function isUuid(v: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v)
 }
@@ -65,16 +77,17 @@ export default async function Page({
     )
   }
 
-  const [playerData, settings, progress] = await Promise.all([
+  const [playerData, settings, progress, game] = await Promise.all([
     getPlayers(gameId),
     getSettings(gameId),
     getHandProgress(gameId),
+    getGame(gameId),
   ])
 
   return (
     <ScorerClient
       gameId={gameId}
-      players={players}
+      players={playerData.players}
       settings={settings}
       appUserId={game.scorekeeper_user_id}
     />

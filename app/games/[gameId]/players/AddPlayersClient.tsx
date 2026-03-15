@@ -22,13 +22,14 @@ export default function AddPlayersClient({
   users,
   currentPlayers,
   appUserId,
+  isScorekeeper,
 }: {
   gameId: string
   users: User[]
   currentPlayers: Player[]
   appUserId: string
+  isScorekeeper: boolean
 }) {
-
   const router = useRouter()
 
   const [selectedUserId, setSelectedUserId] = useState("")
@@ -53,6 +54,12 @@ export default function AddPlayersClient({
 
   async function addPlayer() {
     setMsg("")
+
+    if (!isScorekeeper) {
+      setMsg("Error: Only the scorekeeper can change this game.")
+      return
+    }
+
     if (!selectedUserId) {
       setMsg("Pick a user to add.")
       return
@@ -87,6 +94,12 @@ export default function AddPlayersClient({
 
   async function removePlayer(userId: string) {
     setMsg("")
+
+    if (!isScorekeeper) {
+      setMsg("Error: Only the scorekeeper can change this game.")
+      return
+    }
+
     setWorking(true)
     try {
       const res = await fetch(`${API_BASE}/games/${gameId}/players/${userId}`, {
@@ -111,6 +124,11 @@ export default function AddPlayersClient({
   }
 
   function openCreateModal() {
+    if (!isScorekeeper) {
+      setMsg("Error: Only the scorekeeper can change this game.")
+      return
+    }
+
     setMsg("")
     setNewDisplayName("")
     setNewEmail("")
@@ -125,6 +143,11 @@ export default function AddPlayersClient({
 
   async function createAndAddPlayer() {
     setMsg("")
+
+    if (!isScorekeeper) {
+      setMsg("Error: Only the scorekeeper can change this game.")
+      return
+    }
 
     if (!newDisplayName.trim() || !newEmail.trim()) {
       setMsg("Display name and email are required.")
@@ -194,8 +217,9 @@ export default function AddPlayersClient({
           </h1>
 
           <p className="mt-2 text-sm text-slate-400">
-            Add existing players, remove players from this table, or create a new
-            player and add them instantly.
+            {isScorekeeper
+              ? "Add existing players, remove players from this table, or create a new player and add them instantly."
+              : "You can view the roster for this game, but only the scorekeeper can make changes."}
           </p>
         </div>
 
@@ -244,13 +268,15 @@ export default function AddPlayersClient({
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => removePlayer(p.id)}
-                        disabled={working || creatingPlayer}
-                        className="lp-button-secondary shrink-0"
-                      >
-                        Remove
-                      </button>
+                      {isScorekeeper && (
+                        <button
+                          onClick={() => removePlayer(p.id)}
+                          disabled={working || creatingPlayer}
+                          className="lp-button-secondary shrink-0"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -258,47 +284,50 @@ export default function AddPlayersClient({
             )}
           </section>
 
-          <section className="lp-card">
-            <div className="mb-5">
-              <h2 className="text-2xl font-bold text-white">Add Existing Player</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Select from players not already on this table.
-              </p>
-            </div>
+          {isScorekeeper && (
+            <section className="lp-card">
+              <div className="mb-5">
+                <h2 className="text-2xl font-bold text-white">Add Existing Player</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Select from players not already on this table.
+                </p>
+              </div>
 
-            <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-              <select
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                disabled={working || creatingPlayer}
-              >
-                <option value="">Select a user</option>
-                {availableUsers.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.display_name} ({u.email})
-                  </option>
-                ))}
-              </select>
+              <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                <select
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  disabled={working || creatingPlayer}
+                >
+                  <option value="">Select a user</option>
+                  {availableUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.display_name} ({u.email})
+                    </option>
+                  ))}
+                </select>
 
-              <button
-                onClick={addPlayer}
-                disabled={working || creatingPlayer}
-                className="lp-button"
-              >
-                Add Player
-              </button>
-            </div>
+                <button
+                  onClick={addPlayer}
+                  disabled={working || creatingPlayer}
+                  className="lp-button"
+                >
+                  Add Player
+                </button>
+              </div>
 
-            <div className="mt-4">
-              <button
-                onClick={openCreateModal}
-                disabled={working || creatingPlayer}
-                className="lp-button-secondary"
-              >
-                Create New Player
-              </button>
-            </div>
-          </section>
+              <div className="mt-4">
+                <button
+                  onClick={openCreateModal}
+                  disabled={working || creatingPlayer}
+                  className="lp-button-secondary"
+                >
+                  Create New Player
+                </button>
+              </div>
+            </section>
+          )}
+
           <section className="lp-card mt-6">
             <div className="mb-5">
               <h2 className="text-2xl font-bold text-white">Leave Player Setup</h2>
@@ -340,7 +369,7 @@ export default function AddPlayersClient({
         </div>
       </main>
 
-      {showCreateModal && (
+      {showCreateModal && isScorekeeper && (
         <div
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm"
           onClick={closeCreateModal}
