@@ -245,13 +245,33 @@ export default function ScorerClient({
 
       {cardSaved && (
         <section className="lp-card mb-6">
-
           {!handWillBeCompleteAfterSave ? (
             <>
               <div className="mb-4 text-lg font-bold text-white">
                 Card saved. This hand is not complete yet.
               </div>
 
+              <p className="mb-4 text-sm text-slate-400">
+                Continue scoring, go back to the table, review the scoreboard, or return to the dashboard.
+              </p>
+
+              <GameSessionActions
+                gameId={gameId}
+                handComplete={false}
+                appUserId={appUserId}
+              />
+
+              <div className="mt-4">
+                <button
+                  onClick={() => {
+                    setCardSaved(false)
+                    setMsg("")
+                  }}
+                  className="lp-button-secondary"
+                >
+                  Score Another Card
+                </button>
+              </div>
             </>
           ) : (
             <>
@@ -259,14 +279,29 @@ export default function ScorerClient({
                 Hand complete. Review the scoreboard, start a new hand, or finalize the session.
               </div>
 
+              <p className="mb-4 text-sm text-slate-400">
+                This hand is finished. You can view results now or continue the session.
+              </p>
+
               <GameSessionActions
                 gameId={gameId}
-                handComplete={false}
+                handComplete={true}
                 appUserId={appUserId}
               />
+
+              <div className="mt-4">
+                <button
+                  onClick={() => {
+                    setCardSaved(false)
+                    setMsg("")
+                  }}
+                  className="lp-button-secondary"
+                >
+                  Back to Scoring Form
+                </button>
+              </div>
             </>
           )}
-
         </section>
       )}
 
