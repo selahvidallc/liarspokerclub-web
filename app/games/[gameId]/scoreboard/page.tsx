@@ -33,6 +33,15 @@ type SessionScoreboardResponse = {
   session_summary: SessionSummaryPlayer[]
 }
 
+type HandProgress = {
+  game_id: string
+  cards_per_hand: number
+  current_hand_number: number
+  cards_played_in_current_hand: number
+  cards_remaining_in_current_hand: number
+  hand_complete: boolean
+}
+
 function money(v: number | string | undefined) {
   if (v === undefined) return ""
   const n = typeof v === "string" ? Number(v) : v
@@ -44,15 +53,6 @@ function amountClass(v: number) {
   if (v > 0) return "money-positive"
   if (v < 0) return "money-negative"
   return "text-slate-300"
-}
-
-type HandProgress = {
-  game_id: string
-  cards_per_hand: number
-  current_hand_number: number
-  cards_played_in_current_hand: number
-  cards_remaining_in_current_hand: number
-  hand_complete: boolean
 }
 
 async function getHandProgress(gameId: string) {
@@ -83,7 +83,9 @@ async function getScoreboardSession(gameId: string) {
 }
 
 function isUuid(v: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v)
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    v
+  )
 }
 
 export default async function Page({
@@ -112,25 +114,21 @@ export default async function Page({
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
       <div className="mb-8">
-        <div>
-          <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-            Scoreboard
-          </div>
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+          Scoreboard
+        </div>
 
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">
-            Session Scoreboard
-          </h1>
+        <h1 className="text-4xl font-extrabold tracking-tight text-white">
+          Session Scoreboard
+        </h1>
 
-          <div className="mt-2 text-sm text-slate-400">
-            Game:{" "}
-            <code className="rounded-lg bg-white/5 px-2 py-1 text-slate-200">
-              {data.game_id}
-            </code>
-          </div>
+        <div className="mt-2 text-sm text-slate-400">
+          Game:{" "}
+          <code className="rounded-lg bg-white/5 px-2 py-1 text-slate-200">
+            {data.game_id}
+          </code>
         </div>
       </div>
-
-      <div className="grid gap-6">
 
       <div className="grid gap-6">
         {data.hands.map((hand) => (
@@ -243,7 +241,8 @@ export default async function Page({
             </div>
 
             <span className="lp-badge">
-              {data.hand_summary.length} Hand{data.hand_summary.length === 1 ? "" : "s"}
+              {data.hand_summary.length} Hand
+              {data.hand_summary.length === 1 ? "" : "s"}
             </span>
           </div>
 
@@ -341,8 +340,8 @@ export default async function Page({
             </table>
           </div>
         </section>
-
       </div>
+
       <GameSessionActions
         gameId={gameId}
         handComplete={Boolean(progress?.hand_complete)}
