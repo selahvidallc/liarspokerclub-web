@@ -42,6 +42,11 @@ type HandProgress = {
   hand_complete: boolean
 }
 
+type Game = {
+  id: string
+  scorekeeper_user_id: string
+}
+
 function money(v: number | string | undefined) {
   if (v === undefined) return ""
   const n = typeof v === "string" ? Number(v) : v
@@ -66,6 +71,20 @@ async function getHandProgress(gameId: string) {
   }
 
   return res.json() as Promise<HandProgress | null>
+}
+
+async function getGame(gameId: string) {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
+  const res = await fetch(`${base}/games/${gameId}`, {
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Game fetch failed (${res.status}): ${text}`)
+  }
+
+  return res.json() as Promise<Game>
 }
 
 async function getScoreboardSession(gameId: string) {
@@ -95,7 +114,7 @@ export default async function Page({
 }) {
   const { gameId } = await params
 
-  if (!gameId || gameId === "undefined" || !isUuid(gameId)) {
+  if (!gameId || !isUuid(gameId)) {
     return (
       <main className="mx-auto max-w-7xl px-6 py-8">
         <h1 className="text-4xl font-extrabold tracking-tight text-white">
@@ -106,9 +125,10 @@ export default async function Page({
     )
   }
 
-  const [data, progress] = await Promise.all([
+  const [data, progress, game] = await Promise.all([
     getScoreboardSession(gameId),
     getHandProgress(gameId),
+    getGame(gameId),
   ])
 
   return (
@@ -241,8 +261,7 @@ export default async function Page({
             </div>
 
             <span className="lp-badge">
-              {data.hand_summary.length} Hand
-              {data.hand_summary.length === 1 ? "" : "s"}
+              {data.hand_summary.length} Hand{data.hand_summary.length === 1 ? "" : "s"}
             </span>
           </div>
 
@@ -345,6 +364,7 @@ export default async function Page({
       <GameSessionActions
         gameId={gameId}
         handComplete={Boolean(progress?.hand_complete)}
+        appUserId={game.scorekeeper_user_id}
       />
     </main>
   )
