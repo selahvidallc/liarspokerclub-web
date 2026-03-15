@@ -75,10 +75,10 @@ export default function ScorerClient({
   const [msg, setMsg] = useState("")
   const [cardSaved, setCardSaved] = useState(false)
 
-  const handNumber = progress.current_hand_number
-  const cardsPlayed = progress.cards_played_in_current_hand
-  const cardsRemaining = progress.cards_remaining_in_current_hand
-  const nextCardNumber = cardsPlayed + 1
+  const handNumber = 1
+  const cardsPlayed = 0
+  const cardsRemaining = settings.cards_per_hand
+  const nextCardNumber = 1
   const handWillBeCompleteAfterSave = nextCardNumber >= settings.cards_per_hand
 
   const resolvedBet = useMemo(() => {
@@ -126,7 +126,6 @@ export default function ScorerClient({
           "X-User-Id": appUserId,
         },
         body: JSON.stringify(payload),
-        signal: controller.signal,
       })
 
       const data = await res.json()
@@ -253,10 +252,6 @@ export default function ScorerClient({
                 Card saved. This hand is not complete yet.
               </div>
 
-              <GameSessionActions
-                gameId={gameId}
-                handComplete={false}
-              />
             </>
           ) : (
             <>
@@ -266,7 +261,8 @@ export default function ScorerClient({
 
               <GameSessionActions
                 gameId={gameId}
-                handComplete={true}
+                handComplete={false}
+                appUserId={appUserId}
               />
             </>
           )}

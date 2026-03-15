@@ -25,6 +25,11 @@ type GameSettings = {
   digit_order_mode: string
 }
 
+type Game = {
+  id: string
+  scorekeeper_user_id: string
+}
+
 function faceToInternal(face: string) {
   if (face === "10") return "0"
   if (face === "A") return "1"
@@ -36,6 +41,20 @@ function money(v: number | string | undefined) {
   const n = typeof v === "string" ? Number(v) : v
   if (!Number.isFinite(n)) return String(v)
   return n.toLocaleString(undefined, { style: "currency", currency: "USD" })
+}
+
+async function getGame(gameId: string) {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
+  const res = await fetch(`${base}/games/${gameId}`, {
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Game fetch failed (${res.status}): ${text}`)
+  }
+
+  return res.json() as Promise<Game>
 }
 
 export default function ScorerClient({
@@ -369,10 +388,6 @@ export default function ScorerClient({
           </div>
         </div>
       )}
-      <GameSessionActions
-        gameId={gameId}
-        handComplete={true}
-      />
     </main>
   )
 }
