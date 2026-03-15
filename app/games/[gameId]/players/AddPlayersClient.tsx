@@ -36,6 +36,7 @@ export default function AddPlayersClient({
   const [newDisplayName, setNewDisplayName] = useState("")
   const [newEmail, setNewEmail] = useState("")
   const [creatingPlayer, setCreatingPlayer] = useState(false)
+  const [grantLoginAccess, setGrantLoginAccess] = useState(true)
 
   const currentIds = useMemo(
     () => new Set(currentPlayers.map((p) => p.id)),
@@ -102,6 +103,7 @@ export default function AddPlayersClient({
     setMsg("")
     setNewDisplayName("")
     setNewEmail("")
+    setGrantLoginAccess(true)
     setShowCreateModal(true)
   }
 
@@ -126,6 +128,7 @@ export default function AddPlayersClient({
         body: JSON.stringify({
           display_name: newDisplayName.trim(),
           email: newEmail.trim(),
+          grant_login_access: grantLoginAccess,
         }),
       })
 
@@ -281,37 +284,6 @@ export default function AddPlayersClient({
             </div>
           </section>
 
-          <section className="lp-card">
-            <div className="mb-5">
-              <h2 className="text-2xl font-bold text-white">Next Step</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Go back to the game, start scoring, or review the scoreboard.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={`/games/${gameId}`}
-                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-              >
-                Back to Table →
-              </a>
-
-              <a
-                href={`/games/${gameId}/scorer`}
-                className="lp-button inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-              >
-                Start Scoring →
-              </a>
-
-              <a
-                href={`/games/${gameId}/scoreboard`}
-                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-              >
-                View Scoreboard →
-              </a>
-            </div>
-          </section>
         </div>
       </main>
 
@@ -355,6 +327,23 @@ export default function AddPlayersClient({
                   disabled={creatingPlayer}
                   placeholder="john@example.com"
                 />
+              </div>
+
+              <div className="lp-card-soft">
+                <label className="flex items-center gap-3 text-sm font-semibold text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={grantLoginAccess}
+                    onChange={(e) => setGrantLoginAccess(e.target.checked)}
+                    disabled={creatingPlayer}
+                  />
+                  This player should be able to log in later
+                </label>
+
+                <p className="mt-2 text-sm text-slate-400">
+                  Leave this checked for real players who may want access to the site.
+                  Uncheck it for temporary or roster-only players.
+                </p>
               </div>
 
               <div className="flex flex-wrap justify-end gap-3 pt-2">
