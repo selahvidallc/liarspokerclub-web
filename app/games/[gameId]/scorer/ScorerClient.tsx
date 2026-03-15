@@ -234,15 +234,6 @@ export default function ScorerClient({
         </div>
       </section>
 
-      <section className="lp-card mb-6">
-        <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Current Bid
-        </div>
-        <div className="text-2xl font-extrabold text-white">
-          {count} × {face}
-        </div>
-      </section>
-
       {msg && (
         <div
           className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
