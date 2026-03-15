@@ -27,7 +27,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          {children}
+          <div className="lp-app">{children}</div>
         </body>
       </html>
     </ClerkProvider>
