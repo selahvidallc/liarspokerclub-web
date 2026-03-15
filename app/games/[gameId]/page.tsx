@@ -91,7 +91,7 @@ export default async function GameTablePage({
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      <div className="mb-8">
         <div>
           <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
             Table / Game Home
@@ -109,28 +109,6 @@ export default async function GameTablePage({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <a
-            href={`/games/${gameId}/players`}
-            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-          >
-            Manage Players
-          </a>
-
-          <a
-            href={`/games/${gameId}/scorer`}
-            className="lp-button inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-          >
-            Go to Scorer
-          </a>
-
-          <a
-            href={`/games/${gameId}/scoreboard`}
-            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-          >
-            View Scoreboard
-          </a>
-        </div>
       </div>
 
       <section className="mb-6 grid gap-6 lg:grid-cols-2">
@@ -306,36 +284,6 @@ export default async function GameTablePage({
         )}
       </section>
 
-      <section className="lp-card">
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-white">Session Control</h2>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-
-          <a
-            href={`/games/${gameId}/scorer`}
-            className="lp-button inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-          >
-            {progress?.hand_complete ? "Start New Hand" : "Continue Current Hand"}
-          </a>
-
-          <a
-            href={`/games/${gameId}/scoreboard`}
-            className="lp-button-secondary"
-          >
-            View Scoreboard
-          </a>
-          
-          <a
-            href="/games/new"
-            className="lp-button-secondary"
-          >
-            Start New Game
-          </a>
-
-        </div>
-      </section>
       <GameSessionActions
         gameId={gameId}
         handComplete={Boolean(progress?.hand_complete)}

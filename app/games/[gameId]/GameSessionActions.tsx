@@ -20,6 +20,11 @@ export default function GameSessionActions({
   const [msg, setMsg] = useState("")
 
   async function finalizeSession() {
+    const ok = window.confirm(
+      "Are you sure you want to finalize this session? Scoring will be locked."
+    )
+    if (!ok) return
+
     setBusy(true)
     setMsg("")
 
@@ -34,7 +39,7 @@ export default function GameSessionActions({
         return
       }
 
-      router.push(`/games/${gameId}/session-summary`)
+      router.push(`/dashboard?finalized=1`)
       router.refresh()
     } catch (e: any) {
       setMsg(`Finalize failed: ${e?.message || String(e)}`)
@@ -44,31 +49,27 @@ export default function GameSessionActions({
   }
 
   function handleStartOrContinueHand() {
-    // On scorer page, explicit click refreshes into the next/current hand.
     if (pathname?.endsWith("/scorer")) {
       router.refresh()
       return
     }
 
-    // On table/scoreboard, explicit click moves into scoring.
     router.push(`/games/${gameId}/scorer`)
   }
 
   return (
-    <section className="sticky bottom-4 z-20 mt-6 rounded-2xl border border-white/10 bg-slate-950/95 p-4 backdrop-blur">
-      <div className="mb-3">
+    <section className="sticky bottom-4 z-20 mt-8 rounded-2xl border border-white/10 bg-slate-950/95 p-5 backdrop-blur">
+      <div className="mb-4">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Session Control
+          Game Actions
         </div>
         <div className="mt-1 text-sm text-slate-300">
-          {handComplete
-            ? "This hand is complete. Choose what happens next."
-            : "This hand is still in progress. You can continue, finalize, or start a new game."}
+          Use these controls to manage the table and scoring.
         </div>
       </div>
 
       {msg && (
-        <div className="mb-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+        <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
           {msg}
         </div>
       )}
@@ -82,19 +83,18 @@ export default function GameSessionActions({
           {handComplete ? "Start New Hand" : "Continue Current Hand"}
         </button>
 
-        <button
-          onClick={finalizeSession}
-          disabled={busy}
-          className="lp-button"
-        >
-          {busy ? "Finalizing..." : "Finalize Session"}
-        </button>
-
         <Link
-          href="/games/new"
+          href={`/games/${gameId}/scorer`}
           className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
         >
-          Start New Game
+          Go to Scorer
+        </Link>
+
+        <Link
+          href={`/games/${gameId}/players`}
+          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+        >
+          Manage Players
         </Link>
 
         <Link
@@ -105,10 +105,25 @@ export default function GameSessionActions({
         </Link>
 
         <Link
-          href={`/games/${gameId}`}
+          href={`/info?gameId=${gameId}`}
           className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
         >
-          Back to Table
+          Rules / Info
+        </Link>
+
+        <button
+          onClick={finalizeSession}
+          disabled={busy}
+          className="lp-button-secondary"
+        >
+          {busy ? "Finalizing..." : "Finalize Session"}
+        </button>
+
+        <Link
+          href="/games/new"
+          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+        >
+          Start New Game
         </Link>
       </div>
     </section>
