@@ -62,7 +62,7 @@ export default function ScorerClient({
   const [bidOwner, setBidOwner] = useState("")
   const [bidOwnerWon, setBidOwnerWon] = useState(false)
 
-  const [count, setCount] = useState(3)
+  const [count, setCount] = useState("3")
   const [face, setFace] = useState("7")
 
   const [nut, setNut] = useState(false)
@@ -103,7 +103,14 @@ export default function ScorerClient({
       return
     }
 
-    const finalBidRaw = `${count}x${faceToInternal(face)}`
+    const parsedCount = parseInt(count, 10)
+
+    if (!Number.isFinite(parsedCount) || parsedCount < 1) {
+      setMsg("Bid count must be at least 1.")
+      return
+    }
+
+    const finalBidRaw = `${parsedCount}x${faceToInternal(face)}`
 
     const payload = {
       hand_number: handNumber,
@@ -360,10 +367,15 @@ export default function ScorerClient({
                   Bid Count
                 </label>
                 <input
-                  type="number"
-                  min={1}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={count}
-                  onChange={(e) => setCount(parseInt(e.target.value || "1", 10))}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "")
+                    setCount(value)
+                  }}
+                  placeholder="3"
                 />
               </div>
 
