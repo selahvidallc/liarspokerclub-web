@@ -128,6 +128,9 @@ export default async function Page({
             </code>
           </div>
         </div>
+      </div>
+
+      <div className="grid gap-6">
 
       <div className="grid gap-6">
         {data.hands.map((hand) => (
