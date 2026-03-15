@@ -283,7 +283,44 @@ export default function AddPlayersClient({
               </button>
             </div>
           </section>
+          <section className="lp-card mt-6">
+            <div className="mb-5">
+              <h2 className="text-2xl font-bold text-white">Leave Player Setup</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Use these buttons instead of your browser back button.
+              </p>
+            </div>
 
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={`/games/${gameId}`}
+                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+              >
+                Back to Table
+              </a>
+
+              <a
+                href={`/games/${gameId}/scorer`}
+                className="lp-button inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+              >
+                Go to Score Sheet
+              </a>
+
+              <a
+                href={`/games/${gameId}/scoreboard`}
+                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+              >
+                View Scoreboard
+              </a>
+
+              <a
+                href="/dashboard"
+                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+              >
+                Dashboard
+              </a>
+            </div>
+          </section>
         </div>
       </main>
 
