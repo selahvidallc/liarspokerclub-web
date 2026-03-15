@@ -118,7 +118,26 @@ export default function NewGameClient({
 
     syncUser()
   }, [isLoaded, user])
+  useEffect(() => {
+    if (title) return
 
+    const now = new Date()
+
+    const formatted =
+      "Liar's Poker - " +
+      now.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }) +
+      " " +
+      now.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+
+    setTitle(formatted)
+  }, [])
   function parseLadder(input: string): number[] {
     return input
       .split(",")
