@@ -49,7 +49,7 @@ export default function NewGameClient({
   const [mode, setMode] = useState<"preset" | "custom">("preset")
   const [presetId, setPresetId] = useState(defaultPreset?.id ?? "")
 
-  const [title, setTitle] = useState("Liar's Poker Game")
+  const [title, setTitle] = useState("")
   const [createdBy, setCreatedBy] = useState("")
   const [scorekeeper, setScorekeeper] = useState("")
   const [appUser, setAppUser] = useState<SyncResult | null>(null)
@@ -225,7 +225,7 @@ export default function NewGameClient({
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Liar's Poker Game"
+                placeholder="Enter game name"
               />
             </div>
 
