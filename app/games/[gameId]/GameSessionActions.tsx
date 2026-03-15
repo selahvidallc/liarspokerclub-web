@@ -10,9 +10,11 @@ const API_BASE =
 export default function GameSessionActions({
   gameId,
   handComplete,
+  appUserId,
 }: {
   gameId: string
   handComplete: boolean
+  appUserId: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -31,6 +33,9 @@ export default function GameSessionActions({
     try {
       const res = await fetch(`${API_BASE}/games/${gameId}/finalize`, {
         method: "POST",
+        headers: {
+          "X-User-Id": appUserId,
+        },
       })
 
       if (!res.ok) {

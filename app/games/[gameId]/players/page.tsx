@@ -67,7 +67,8 @@ export default async function Page({
       <AddPlayersClient
         gameId={gameId}
         users={users}
-        currentPlayers={gamePlayers.players}
+        currentPlayers={players}
+        appUserId={game.scorekeeper_user_id}
       />
     </main>
   )

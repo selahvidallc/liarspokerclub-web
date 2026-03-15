@@ -287,6 +287,7 @@ export default async function GameTablePage({
       <GameSessionActions
         gameId={gameId}
         handComplete={Boolean(progress?.hand_complete)}
+        appUserId={game.scorekeeper_user_id}
       />
     </main>
   )

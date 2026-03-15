@@ -21,11 +21,14 @@ export default function AddPlayersClient({
   gameId,
   users,
   currentPlayers,
+  appUserId,
 }: {
   gameId: string
   users: User[]
   currentPlayers: Player[]
+  appUserId: string
 }) {
+
   const router = useRouter()
 
   const [selectedUserId, setSelectedUserId] = useState("")
@@ -59,7 +62,12 @@ export default function AddPlayersClient({
     try {
       const res = await fetch(
         `${API_BASE}/games/${gameId}/players?user_id=${selectedUserId}`,
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: {
+            "X-User-Id": appUserId,
+          },
+        }
       )
 
       if (!res.ok) {
@@ -83,6 +91,9 @@ export default function AddPlayersClient({
     try {
       const res = await fetch(`${API_BASE}/games/${gameId}/players/${userId}`, {
         method: "DELETE",
+        headers: {
+          "X-User-Id": appUserId,
+        },
       })
 
       if (!res.ok) {
@@ -142,7 +153,12 @@ export default function AddPlayersClient({
 
       const addRes = await fetch(
         `${API_BASE}/games/${gameId}/players?user_id=${newUser.id}`,
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: {
+            "X-User-Id": appUserId,
+          },
+        }
       )
 
       if (!addRes.ok) {

@@ -73,10 +73,10 @@ export default async function Page({
 
   return (
     <ScorerClient
-      gameId={playerData.game_id}
-      players={playerData.players}
+      gameId={gameId}
+      players={players}
       settings={settings}
-      progress={progress}
+      appUserId={game.scorekeeper_user_id}
     />
   )
 }

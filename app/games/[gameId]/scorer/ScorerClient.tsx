@@ -50,12 +50,12 @@ export default function ScorerClient({
   gameId,
   players,
   settings,
-  progress,
+  appUserId,
 }: {
   gameId: string
   players: Player[]
   settings: GameSettings
-  progress: HandProgress
+  appUserId: string
 }) {
   const router = useRouter()
 
@@ -121,15 +121,13 @@ export default function ScorerClient({
     try {
       const res = await fetch(`${API_BASE}/games/${gameId}/hands/resolve`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-Id": appUserId,
+        },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       })
-
-      if (!res.ok) {
-        const t = await res.text()
-        setMsg(`Error: ${t}`)
-        return
-      }
 
       const data = await res.json()
       setMsg(`Saved! Hand #${data.hand_number} — rows created: ${data.rows_created}`)
