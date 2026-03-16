@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -18,11 +19,17 @@ export const metadata: Metadata = {
   description: "Liars Poker Club",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en">
-        <body>{children}</body>
+        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );
