@@ -62,7 +62,7 @@ export default function ScorerClient({
   const router = useRouter()
 
   const [bidOwner, setBidOwner] = useState("")
-  const [bidOwnerWon, setBidOwnerWon] = useState(false)
+  const [bidOwnerWon, setBidOwnerWon] = useState<boolean | null>(null)  
 
   const [count, setCount] = useState("3")
   const [face, setFace] = useState("7")
@@ -102,6 +102,11 @@ export default function ScorerClient({
 
     if (!bidOwner) {
       setMsg("Pick the bid owner.")
+      return
+    }
+
+    if (bidOwnerWon === null) {
+      setMsg("Select whether the bid owner won or lost.")
       return
     }
 
@@ -163,8 +168,10 @@ export default function ScorerClient({
     try {
       const res = await fetch(`${API_BASE}/games/${gameId}/finalize`, {
         method: "POST",
+        headers: {
+          "X-User-Id": appUserId,
+        },
       })
-
       if (!res.ok) {
         const text = await res.text()
         setMsg(`Finalize failed: ${text}`)
@@ -172,7 +179,7 @@ export default function ScorerClient({
       }
 
       setMsg("Session finalized.")
-      router.push(`/games/${gameId}/session-summary`)
+      router.push(`/games/${gameId}/scoreboard`)
       router.refresh()
     } catch (e: any) {
       setMsg(`Finalize failed: ${e?.message || String(e)}`)
@@ -286,11 +293,11 @@ export default function ScorerClient({
           ) : (
             <>
               <div className="mb-4 text-lg font-bold text-white">
-                Hand complete. Review the scoreboard, start a new hand, or finalize the session.
+                This hand is complete. Start the next hand, view the scoreboard, or end the session.
               </div>
 
               <p className="mb-4 text-sm text-slate-400">
-                This hand is finished. You can view results now or continue the session.
+                You cannot score more cards in this hand. Choose the next session action below.
               </p>
 
               <GameSessionActions
@@ -299,17 +306,7 @@ export default function ScorerClient({
                 appUserId={appUserId}
               />
 
-              <div className="mt-4">
-                <button
-                  onClick={() => {
-                    setCardSaved(false)
-                    setMsg("")
-                  }}
-                  className="lp-button-secondary"
-                >
-                  Back to Scoring Form
-                </button>
-              </div>
+
             </>
           )}
         </section>
@@ -466,13 +463,6 @@ export default function ScorerClient({
               <button onClick={finalizeCumCum} disabled={saving} className="lp-button">
                 Finalize Session
               </button>
-
-              <a
-                href="/games/new"
-                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-              >
-                Start New Game
-              </a>
 
               <a
                 href={`/info?gameId=${gameId}`}
