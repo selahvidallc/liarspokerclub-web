@@ -18,17 +18,11 @@ export const metadata: Metadata = {
   description: "Liars Poker Club",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          <div className="lp-app">{children}</div>
-        </body>
+        <body>{children}</body>
       </html>
     </ClerkProvider>
   );

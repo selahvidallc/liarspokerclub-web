@@ -2,6 +2,7 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
 
 import GameSessionActions from "./GameSessionActions"
+import DeleteGameButton from "./DeleteGameButton"
 
 type Game = {
   id: string
@@ -107,6 +108,14 @@ export default async function GameTablePage({
               {game.id}
             </code>
           </div>
+          {game.status !== "FINALIZED" && (
+            <div className="mt-4">
+              <DeleteGameButton
+                gameId={gameId}
+                appUserId={game.created_by_user_id}
+              />
+            </div>
+          )}
         </div>
 
       </div>

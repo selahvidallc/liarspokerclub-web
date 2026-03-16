@@ -50,11 +50,13 @@ export default function ScorerClient({
   gameId,
   players,
   settings,
+  progress,
   appUserId,
 }: {
   gameId: string
   players: Player[]
   settings: GameSettings
+  progress: HandProgress
   appUserId: string
 }) {
   const router = useRouter()
@@ -75,10 +77,10 @@ export default function ScorerClient({
   const [msg, setMsg] = useState("")
   const [cardSaved, setCardSaved] = useState(false)
 
-  const handNumber = 1
-  const cardsPlayed = 0
-  const cardsRemaining = settings.cards_per_hand
-  const nextCardNumber = 1
+  const handNumber = progress.current_hand_number
+  const cardsPlayed = progress.cards_played_in_current_hand
+  const cardsRemaining = progress.cards_remaining_in_current_hand
+  const nextCardNumber = cardsPlayed + 1
   const handWillBeCompleteAfterSave = nextCardNumber >= settings.cards_per_hand
 
   const resolvedBet = useMemo(() => {
@@ -111,6 +113,7 @@ export default function ScorerClient({
     }
 
     const finalBidRaw = `${parsedCount}x${faceToInternal(face)}`
+
 
     const payload = {
       hand_number: handNumber,

@@ -19,6 +19,7 @@ type Game = {
   base_bet: string | number;
   status: string;
   finalized_at: string | null;
+  created_by_user_id: string;
 };
 
 export default function DashboardPage() {
@@ -28,6 +29,9 @@ export default function DashboardPage() {
   const [loadingGames, setLoadingGames] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const activeGames = games.filter((g) => g.status !== "FINALIZED");
+  const pastGames = games.filter((g) => g.status === "FINALIZED");
+
   useEffect(() => {
     if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return;
 
@@ -35,7 +39,7 @@ export default function DashboardPage() {
       try {
         setError(null);
 
-        const email = user?.primaryEmailAddress?.emailAddress;
+        const email = user.primaryEmailAddress?.emailAddress;
         if (!email) {
           throw new Error("Signed-in user does not have a primary email");
         }
@@ -123,9 +127,9 @@ export default function DashboardPage() {
           </div>
 
           <div className="lp-card">
-            <div className="text-lg font-bold text-white">Join Game</div>
+            <div className="text-lg font-bold text-white">Past Games</div>
             <div className="mt-2 text-sm text-slate-400">
-              Join an existing table when invited or added.
+              Review finalized sessions and scoreboards.
             </div>
           </div>
 
@@ -139,24 +143,22 @@ export default function DashboardPage() {
 
         <section className="mt-8 lp-card">
           <div className="mb-4">
-            <h2 className="text-2xl font-bold text-white">Recent Games</h2>
+            <h2 className="text-2xl font-bold text-white">Active Games</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Games you own or participate in.
+              Games you created, scorekeep, or joined that are still in progress.
             </p>
           </div>
 
           {loadingGames ? (
             <div className="text-slate-400">Loading games...</div>
-          ) : games.length === 0 ? (
-            <div className="text-slate-400">
-              No games yet. Create your first game.
-            </div>
+          ) : activeGames.length === 0 ? (
+            <div className="text-slate-400">No active games.</div>
           ) : (
             <div className="grid gap-3">
-              {games.map((game) => (
+              {activeGames.map((game) => (
                 <Link
                   key={game.id}
-                  href={game.status === "FINALIZED" ? `/games/${game.id}/scoreboard` : `/games/${game.id}`}
+                  href={`/games/${game.id}`}
                   className="lp-card-soft hover:opacity-90"
                 >
                   <div className="flex items-center justify-between gap-4">
@@ -165,11 +167,52 @@ export default function DashboardPage() {
                         {game.title}
                       </div>
                       <div className="mt-1 text-sm text-slate-400">
-                        {game.settlement_mode} • {game.cards_per_hand} cards • ${game.base_bet} • {game.status}
+                        {game.settlement_mode} • {game.cards_per_hand} cards • $
+                        {game.base_bet}
                       </div>
                     </div>
                     <div className="text-sm font-semibold text-slate-300">
-                      {game.status === "FINALIZED" ? "View Scoreboard →" : "Open Table →"}
+                      Open Table →
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mt-8 lp-card">
+          <div className="mb-4">
+            <h2 className="text-2xl font-bold text-white">Past Games</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Finalized sessions and completed scoreboards.
+            </p>
+          </div>
+
+          {loadingGames ? (
+            <div className="text-slate-400">Loading games...</div>
+          ) : pastGames.length === 0 ? (
+            <div className="text-slate-400">No past games yet.</div>
+          ) : (
+            <div className="grid gap-3">
+              {pastGames.map((game) => (
+                <Link
+                  key={game.id}
+                  href={`/games/${game.id}/scoreboard`}
+                  className="lp-card-soft hover:opacity-90"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-lg font-semibold text-white">
+                        {game.title}
+                      </div>
+                      <div className="mt-1 text-sm text-slate-400">
+                        {game.settlement_mode} • {game.cards_per_hand} cards • $
+                        {game.base_bet}
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold text-slate-300">
+                      View Scoreboard →
                     </div>
                   </div>
                 </Link>

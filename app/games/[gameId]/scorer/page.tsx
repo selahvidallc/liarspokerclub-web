@@ -89,6 +89,7 @@ export default async function Page({
       gameId={gameId}
       players={playerData.players}
       settings={settings}
+      progress={progress}
       appUserId={game.scorekeeper_user_id}
     />
   )
