@@ -105,7 +105,7 @@ export default function GameSessionActions({
             disabled={busy}
             className="lp-button"
           >
-            Continue Current Hand
+            Scorer Sheet
           </button>
         )}
 
