@@ -81,7 +81,7 @@ export default function ScorerClient({
   const cardsPlayed = progress.cards_played_in_current_hand
   const cardsRemaining = progress.cards_remaining_in_current_hand
   const nextCardNumber = cardsPlayed + 1
-  const handWillBeCompleteAfterSave = nextCardNumber >= settings.cards_per_hand
+  const handIsActuallyComplete = progress.hand_complete
 
   const resolvedBet = useMemo(() => {
     if (betAmount.trim()) return Number(betAmount)
@@ -150,7 +150,7 @@ export default function ScorerClient({
         return
       }
 
-      const completed = nextCardNumber >= settings.cards_per_hand
+      const completed = Number(data.card_number) >= settings.cards_per_hand
 
       if (completed) {
         router.push(`/games/${gameId}/scoreboard?handComplete=1`)
@@ -158,8 +158,19 @@ export default function ScorerClient({
         return
       }
 
-      setMsg(`Saved! Hand #${data.hand_number} — rows created: ${data.rows_created}`)
-      setCardSaved(true)
+      setMsg(
+        `Saved card ${data.card_number} of ${settings.cards_per_hand} for Hand #${data.hand_number}.`
+      )
+      setCardSaved(false)
+      setBidOwner("")
+      setBidOwnerWon(null)
+      setCount("3")
+      setFace("7")
+      setNut(false)
+      setSkunk(false)
+      setBetAmount("")
+      setNotes("")
+      router.refresh()
 
     } catch (e: any) {
       setMsg(`Error: ${e?.message || String(e)}`)
@@ -327,7 +338,7 @@ export default function ScorerClient({
         </section>
       )}
 
-      {!cardSaved && (
+      {!handIsActuallyComplete ? (
         <section className="lp-card">
           <div className="grid gap-5">
             <div>
@@ -438,7 +449,11 @@ export default function ScorerClient({
                   Nut (double)
                 </label>
 
-                <label className={`flex items-center gap-2 ${nut ? "opacity-50" : "text-slate-200"}`}>
+                <label
+                  className={`flex items-center gap-2 ${
+                    nut ? "opacity-50" : "text-slate-200"
+                  }`}
+                >
                   <input
                     type="checkbox"
                     checked={skunk}
@@ -467,14 +482,20 @@ export default function ScorerClient({
                 {saving ? "Saving..." : "Save Card"}
               </button>
 
-              <a href={`/games/${gameId}/scoreboard`} className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
+              <a
+                href={`/games/${gameId}/scoreboard`}
+                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+              >
                 Go to Scoreboard →
               </a>
 
-              <a href={`/games/${gameId}`} className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold">
+              <a
+                href={`/games/${gameId}`}
+                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+              >
                 Back to Table →
               </a>
- 
+
               <button onClick={finalizeCumCum} disabled={saving} className="lp-button">
                 Finalize Session
               </button>
@@ -487,6 +508,24 @@ export default function ScorerClient({
               </a>
             </div>
           </div>
+        </section>
+      ) : (
+        <section className="lp-card mb-6">
+          <div className="mb-4 text-lg font-bold text-white">
+            This hand is complete. Start the next hand, view the scoreboard, or end the
+            session.
+          </div>
+
+          <p className="mb-4 text-sm text-slate-400">
+            You cannot score more cards in this hand. Choose the next session action
+            below.
+          </p>
+
+          <GameSessionActions
+            gameId={gameId}
+            handComplete={true}
+            appUserId={appUserId}
+          />
         </section>
       )}
     </main>
