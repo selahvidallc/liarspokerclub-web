@@ -286,58 +286,6 @@ export default function ScorerClient({
         </div>
       )}
 
-      {cardSaved && (
-        <section className="lp-card mb-6">
-          {!handWillBeCompleteAfterSave ? (
-            <>
-              <div className="mb-4 text-lg font-bold text-white">
-                Card saved. This hand is not complete yet.
-              </div>
-
-              <p className="mb-4 text-sm text-slate-400">
-                Continue scoring, go back to the table, review the scoreboard, or return to the dashboard.
-              </p>
-
-              <GameSessionActions
-                gameId={gameId}
-                handComplete={false}
-                appUserId={appUserId}
-              />
-
-              <div className="mt-4">
-                <button
-                  onClick={() => {
-                    setCardSaved(false)
-                    setMsg("")
-                  }}
-                  className="lp-button-secondary"
-                >
-                  Score Another Card
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="mb-4 text-lg font-bold text-white">
-                This hand is complete. Start the next hand, view the scoreboard, or end the session.
-              </div>
-
-              <p className="mb-4 text-sm text-slate-400">
-                You cannot score more cards in this hand. Choose the next session action below.
-              </p>
-
-              <GameSessionActions
-                gameId={gameId}
-                handComplete={true}
-                appUserId={appUserId}
-              />
-
-
-            </>
-          )}
-        </section>
-      )}
-
       {!handIsActuallyComplete ? (
         <section className="lp-card">
           <div className="grid gap-5">
