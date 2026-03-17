@@ -1,6 +1,10 @@
 import ScorerClient from "./ScorerClient"
 
-type Player = { id: string; display_name: string }
+type Player = {
+  id: string
+  display_name: string
+  is_active: boolean
+}
 
 type Game = {
   id: string
@@ -87,7 +91,7 @@ export default async function Page({
   return (
     <ScorerClient
       gameId={gameId}
-      players={playerData.players}
+      players={playerData.players.filter((p) => p.is_active)}
       settings={settings}
       progress={progress}
       appUserId={game.scorekeeper_user_id}
