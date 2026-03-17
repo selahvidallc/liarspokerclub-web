@@ -44,8 +44,10 @@ export default function GameSessionActions({
         return
       }
 
-      router.push(`/games/${gameId}/scoreboard`)
+      // ✅ Redirect to dashboard instead of staying in game
+      router.push("/dashboard")
       router.refresh()
+
     } catch (e: any) {
       setMsg(`End session failed: ${e?.message || String(e)}`)
     } finally {
