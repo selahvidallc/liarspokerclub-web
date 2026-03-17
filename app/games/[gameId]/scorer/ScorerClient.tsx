@@ -144,8 +144,23 @@ export default function ScorerClient({
       })
 
       const data = await res.json()
+
+      if (!res.ok) {
+        setMsg(`Error: ${data?.detail || "Failed to save card"}`)
+        return
+      }
+
+      const completed = nextCardNumber >= settings.cards_per_hand
+
+      if (completed) {
+        router.push(`/games/${gameId}/scoreboard?handComplete=1`)
+        router.refresh()
+        return
+      }
+
       setMsg(`Saved! Hand #${data.hand_number} — rows created: ${data.rows_created}`)
       setCardSaved(true)
+
     } catch (e: any) {
       setMsg(`Error: ${e?.message || String(e)}`)
     } finally {

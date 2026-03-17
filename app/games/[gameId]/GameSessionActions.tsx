@@ -53,13 +53,13 @@ export default function GameSessionActions({
     }
   }
 
-  function handleStartOrContinueHand() {
-    if (pathname?.endsWith("/scorer")) {
-      router.refresh()
-      return
-    }
-
+  function handleSameHandSamePlayers() {
     router.push(`/games/${gameId}/scorer`)
+    router.refresh()
+  }
+
+  function handleChangeHandTypePlayers() {
+    router.push(`/games/${gameId}`)
   }
 
   return (
@@ -70,7 +70,7 @@ export default function GameSessionActions({
         </div>
         <div className="mt-1 text-sm text-slate-300">
           {handComplete
-            ? "This hand is finished. Start the next hand, view the scoreboard, or end the session."
+            ? "This hand is complete. Choose how to continue the session."
             : "Continue scoring the current hand, review the scoreboard, or end the session."}
         </div>
       </div>
@@ -82,13 +82,39 @@ export default function GameSessionActions({
       )}
 
       <div className="flex flex-wrap gap-3">
-        <button
-          onClick={handleStartOrContinueHand}
-          disabled={busy}
-          className="lp-button"
-        >
-          {handComplete ? "Start Next Hand" : "Continue Current Hand"}
-        </button>
+        {handComplete ? (
+          <>
+            <button
+              onClick={handleSameHandSamePlayers}
+              disabled={busy}
+              className="lp-button"
+            >
+              Play Same Hand Type / Same Players
+            </button>
+
+            <button
+              onClick={handleChangeHandTypePlayers}
+              disabled={busy}
+              className="lp-button-secondary"
+            >
+              Change Hand Type / Edit Players
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => {
+              if (pathname?.endsWith("/scorer")) {
+                router.refresh()
+                return
+              }
+              router.push(`/games/${gameId}/scorer`)
+            }}
+            disabled={busy}
+            className="lp-button"
+          >
+            Continue Current Hand
+          </button>
+        )}
 
         <Link
           href={`/games/${gameId}/scoreboard`}
@@ -102,20 +128,6 @@ export default function GameSessionActions({
           className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
         >
           Back to Table
-        </Link>
-
-        <Link
-          href={`/games/${gameId}/players`}
-          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-        >
-          Manage Players
-        </Link>
-
-        <Link
-          href={`/info?gameId=${gameId}`}
-          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-        >
-          Rules / Info
         </Link>
 
         <button

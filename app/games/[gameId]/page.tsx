@@ -214,7 +214,9 @@ export default async function GameTablePage({
               <div className="lp-card-soft">
                 <div className="text-sm text-slate-400">Current Card In Hand</div>
                 <div className="mt-1 text-xl font-bold text-white">
-                  {progress.cards_played_in_current_hand + 1}
+                  {progress.hand_complete
+                    ? `${progress.cards_per_hand} of ${progress.cards_per_hand}`
+                    : `${progress.cards_played_in_current_hand + 1} of ${progress.cards_per_hand}`}
                 </div>
               </div>
 
