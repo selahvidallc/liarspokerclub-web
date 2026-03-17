@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 const API_BASE =
@@ -17,7 +17,6 @@ export default function GameSessionActions({
   appUserId: string
 }) {
   const router = useRouter()
-  const pathname = usePathname()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState("")
 
@@ -44,10 +43,8 @@ export default function GameSessionActions({
         return
       }
 
-      // ✅ Redirect to dashboard instead of staying in game
       router.push("/dashboard")
       router.refresh()
-
     } catch (e: any) {
       setMsg(`End session failed: ${e?.message || String(e)}`)
     } finally {
@@ -55,13 +52,13 @@ export default function GameSessionActions({
     }
   }
 
-  function handleSameHandSamePlayers() {
+  function playSameHandSamePlayers() {
     router.push(`/games/${gameId}/scorer`)
     router.refresh()
   }
 
-  function handleChangeHandTypePlayers() {
-    router.push(`/games/${gameId}`)
+  function changePlayersOrHandType() {
+    router.push(`/games/${gameId}/setup`)
   }
 
   return (
@@ -87,7 +84,7 @@ export default function GameSessionActions({
         {handComplete ? (
           <>
             <button
-              onClick={handleSameHandSamePlayers}
+              onClick={playSameHandSamePlayers}
               disabled={busy}
               className="lp-button"
             >
@@ -95,22 +92,16 @@ export default function GameSessionActions({
             </button>
 
             <button
-              onClick={handleChangeHandTypePlayers}
+              onClick={changePlayersOrHandType}
               disabled={busy}
               className="lp-button-secondary"
             >
-              Change Hand Type / Edit Players
+              Change Players / Hand Type
             </button>
           </>
         ) : (
           <button
-            onClick={() => {
-              if (pathname?.endsWith("/scorer")) {
-                router.refresh()
-                return
-              }
-              router.push(`/games/${gameId}/scorer`)
-            }}
+            onClick={() => router.push(`/games/${gameId}/scorer`)}
             disabled={busy}
             className="lp-button"
           >
