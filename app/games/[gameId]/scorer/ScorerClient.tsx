@@ -1,6 +1,6 @@
 "use client"
 import GameSessionActions from "../GameSessionActions"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 const API_BASE =
@@ -75,14 +75,18 @@ export default function ScorerClient({
 
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState("")
-  const [cardSaved, setCardSaved] = useState(false)
 
   const handNumber = progress.current_hand_number
   const cardsPlayed = progress.cards_played_in_current_hand
   const cardsRemaining = progress.cards_remaining_in_current_hand
   const nextCardNumber = cardsPlayed + 1
   const handIsActuallyComplete = progress.hand_complete
-
+    useEffect(() => {
+      if (handIsActuallyComplete) {
+        router.push(`/games/${gameId}/scoreboard?handComplete=1`)
+        router.refresh()
+      }
+    }, [handIsActuallyComplete, gameId, router])
   const resolvedBet = useMemo(() => {
     if (betAmount.trim()) return Number(betAmount)
 
@@ -98,7 +102,11 @@ export default function ScorerClient({
 
   async function submit() {
     setMsg("")
-    setCardSaved(false)
+
+    if (handIsActuallyComplete) {
+      setMsg("This hand is already complete. Start the next hand from the scoreboard.")
+      return
+    }
 
     if (!bidOwner) {
       setMsg("Pick the bid owner.")
@@ -161,7 +169,6 @@ export default function ScorerClient({
       setMsg(
         `Saved card ${data.card_number} of ${settings.cards_per_hand} for Hand #${data.hand_number}.`
       )
-      setCardSaved(false)
       setBidOwner("")
       setBidOwnerWon(null)
       setCount("3")
@@ -247,7 +254,9 @@ export default function ScorerClient({
           <div className="lp-card-soft">
             <div className="text-sm text-slate-400">Card In This Hand</div>
             <div className="mt-1 text-lg font-bold text-white">
-              {nextCardNumber} of {settings.cards_per_hand}
+              {handIsActuallyComplete
+                ? `${settings.cards_per_hand} of ${settings.cards_per_hand}`
+                : `${nextCardNumber} of ${settings.cards_per_hand}`}
             </div>
           </div>
 
@@ -275,13 +284,7 @@ export default function ScorerClient({
       </section>
 
       {msg && (
-        <div
-          className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
-            cardSaved
-              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-              : "border-amber-500/30 bg-amber-500/10 text-amber-100"
-          }`}
-        >
+        <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
           <div className="whitespace-pre-wrap">{msg}</div>
         </div>
       )}
@@ -426,8 +429,12 @@ export default function ScorerClient({
             </div>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button onClick={submit} disabled={saving} className="lp-button">
-                {saving ? "Saving..." : "Save Card"}
+              <button
+                onClick={submit}
+                disabled={saving || handIsActuallyComplete}
+                className="lp-button"
+              >
+                {saving ? "Saving..." : handIsActuallyComplete ? "Hand Complete" : "Save Card"}
               </button>
 
               <a
