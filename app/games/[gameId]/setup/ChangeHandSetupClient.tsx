@@ -224,10 +224,10 @@ export default function ChangeHandSetupClient({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-User-Id": scorekeeperUserId,
         },
         body: JSON.stringify(payload),
       })
-
       if (!res.ok) {
         setMsg(`Error saving next-hand settings: ${await res.text()}`)
         return
