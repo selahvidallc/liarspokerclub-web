@@ -1,4 +1,5 @@
 "use client"
+
 import GameSessionActions from "../GameSessionActions"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -9,6 +10,7 @@ const API_BASE =
 type Player = {
   id: string
   display_name: string
+  is_active?: boolean
 }
 
 type GameSettings = {
@@ -31,6 +33,8 @@ type HandProgress = {
   cards_played_in_current_hand: number
   cards_remaining_in_current_hand: number
   hand_complete: boolean
+  awaiting_next_hand?: boolean
+  next_hand_number?: number
 }
 
 function faceToInternal(face: string) {
@@ -52,41 +56,48 @@ export default function ScorerClient({
   settings,
   progress,
   appUserId,
+  startNextHand,
 }: {
   gameId: string
   players: Player[]
   settings: GameSettings
   progress: HandProgress
   appUserId: string
+  startNextHand: boolean
 }) {
   const router = useRouter()
 
   const [bidOwner, setBidOwner] = useState("")
-  const [bidOwnerWon, setBidOwnerWon] = useState<boolean | null>(null)  
-
+  const [bidOwnerWon, setBidOwnerWon] = useState<boolean | null>(null)
   const [count, setCount] = useState("3")
   const [face, setFace] = useState("7")
-
   const [nut, setNut] = useState(false)
   const [skunk, setSkunk] = useState(false)
-
   const [betAmount, setBetAmount] = useState("")
   const [notes, setNotes] = useState("")
-
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState("")
 
-  const handNumber = progress.current_hand_number
-  const cardsPlayed = progress.cards_played_in_current_hand
-  const cardsRemaining = progress.cards_remaining_in_current_hand
+  const canStartNextHand = startNextHand && progress.hand_complete
+  const effectiveHandNumber = canStartNextHand
+    ? (progress.next_hand_number ?? progress.current_hand_number + 1)
+    : progress.current_hand_number
+
+  const cardsPlayed = canStartNextHand ? 0 : progress.cards_played_in_current_hand
+  const cardsRemaining = canStartNextHand
+    ? settings.cards_per_hand
+    : progress.cards_remaining_in_current_hand
+
   const nextCardNumber = cardsPlayed + 1
-  const handIsActuallyComplete = progress.hand_complete
-    useEffect(() => {
-      if (handIsActuallyComplete) {
-        router.push(`/games/${gameId}/scoreboard?handComplete=1`)
-        router.refresh()
-      }
-    }, [handIsActuallyComplete, gameId, router])
+  const handIsActuallyComplete = progress.hand_complete && !canStartNextHand
+
+  useEffect(() => {
+    if (handIsActuallyComplete) {
+      router.push(`/games/${gameId}/scoreboard?handComplete=1`)
+      router.refresh()
+    }
+  }, [handIsActuallyComplete, gameId, router])
+
   const resolvedBet = useMemo(() => {
     if (betAmount.trim()) return Number(betAmount)
 
@@ -119,7 +130,6 @@ export default function ScorerClient({
     }
 
     const parsedCount = parseInt(count, 10)
-
     if (!Number.isFinite(parsedCount) || parsedCount < 1) {
       setMsg("Bid count must be at least 1.")
       return
@@ -127,9 +137,8 @@ export default function ScorerClient({
 
     const finalBidRaw = `${parsedCount}x${faceToInternal(face)}`
 
-
     const payload = {
-      hand_number: handNumber,
+      hand_number: effectiveHandNumber,
       bid_owner_user_id: bidOwner,
       bid_owner_won: bidOwnerWon,
       final_bid_raw: finalBidRaw,
@@ -178,20 +187,11 @@ export default function ScorerClient({
       setBetAmount("")
       setNotes("")
       router.refresh()
-
     } catch (e: any) {
       setMsg(`Error: ${e?.message || String(e)}`)
     } finally {
       setSaving(false)
     }
-  }
-
-  function playAnotherCardInSameHand() {
-    router.refresh()
-  }
-
-  function playAnotherHand() {
-    router.refresh()
   }
 
   async function finalizeCumCum() {
@@ -205,6 +205,7 @@ export default function ScorerClient({
           "X-User-Id": appUserId,
         },
       })
+
       if (!res.ok) {
         const text = await res.text()
         setMsg(`Finalize failed: ${text}`)
@@ -241,7 +242,7 @@ export default function ScorerClient({
           </div>
 
           <div className="lp-badge">
-            Hand #{handNumber}
+            Hand #{effectiveHandNumber}
           </div>
         </div>
 

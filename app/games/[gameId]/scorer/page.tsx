@@ -3,7 +3,7 @@ import ScorerClient from "./ScorerClient"
 type Player = {
   id: string
   display_name: string
-  is_active: boolean
+  is_active?: boolean
 }
 
 type Game = {
@@ -31,6 +31,8 @@ type HandProgress = {
   cards_played_in_current_hand: number
   cards_remaining_in_current_hand: number
   hand_complete: boolean
+  awaiting_next_hand?: boolean
+  next_hand_number?: number
 }
 
 async function getPlayers(gameId: string) {
@@ -67,10 +69,14 @@ function isUuid(v: string) {
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ gameId: string }>
+  searchParams?: Promise<{ start_next_hand?: string }>
 }) {
   const { gameId } = await params
+  const sp = (await searchParams) ?? {}
+  const startNextHand = sp.start_next_hand === "1"
 
   if (!gameId || gameId === "undefined" || !isUuid(gameId)) {
     return (
@@ -87,10 +93,8 @@ export default async function Page({
     getHandProgress(gameId),
     getGame(gameId),
   ])
-  const activePlayers = playerData.players.filter((p) => p.is_active !== false)
 
-  console.log("SCORER playerData.players", playerData.players)
-  console.log("SCORER activePlayers", activePlayers)
+  const activePlayers = playerData.players.filter((p) => p.is_active !== false)
 
   return (
     <ScorerClient
@@ -99,6 +103,7 @@ export default async function Page({
       settings={settings}
       progress={progress}
       appUserId={game.scorekeeper_user_id}
+      startNextHand={startNextHand}
     />
   )
 }

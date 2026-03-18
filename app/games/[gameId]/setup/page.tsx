@@ -30,6 +30,7 @@ type User = {
 type Player = {
   id: string
   display_name: string
+  is_active?: boolean
 }
 
 type PlayersResponse = {
@@ -167,8 +168,7 @@ export default async function Page({
           <div className="mb-4">
             <h2 className="text-2xl font-bold text-white">Next Hand Settings</h2>
             <p className="mt-1 text-sm text-slate-400">
-              These are shown here now so the flow makes sense. Settlement mode is
-              locked once the session is running.
+              Settlement mode stays locked once the session is running.
             </p>
           </div>
 
@@ -207,11 +207,6 @@ export default async function Page({
                 readOnly
                 className="opacity-70"
               />
-            </div>
-
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-              Next step: add a backend update route so this page can save cards per
-              hand / hand-type changes for the next hand without creating a new game.
             </div>
           </div>
         </div>

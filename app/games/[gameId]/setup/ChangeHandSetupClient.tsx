@@ -15,6 +15,7 @@ type User = {
 type Player = {
   id: string
   display_name: string
+  is_active?: boolean
 }
 
 export default function ChangeHandSetupClient({
@@ -38,28 +39,33 @@ export default function ChangeHandSetupClient({
   const [msg, setMsg] = useState("")
   const [working, setWorking] = useState(false)
 
-  const currentIds = useMemo(
-    () => new Set(currentPlayers.map((p) => p.id)),
+  const activePlayers = useMemo(
+    () => currentPlayers.filter((p) => p.is_active !== false),
     [currentPlayers]
   )
 
-  const availableUsers = useMemo(
-    () => users.filter((u) => !currentIds.has(u.id)),
-    [users, currentIds]
+  const inactivePlayers = useMemo(
+    () => currentPlayers.filter((p) => p.is_active === false),
+    [currentPlayers]
   )
 
-  async function addPlayer() {
+  const activeIds = useMemo(
+    () => new Set(activePlayers.map((p) => p.id)),
+    [activePlayers]
+  )
+
+  const availableUsers = useMemo(
+    () => users.filter((u) => !activeIds.has(u.id)),
+    [users, activeIds]
+  )
+
+  async function addOrReactivatePlayer(userId: string) {
     setMsg("")
-
-    if (!selectedUserId) {
-      setMsg("Pick a user to add.")
-      return
-    }
-
     setWorking(true)
+
     try {
       const res = await fetch(
-        `${API_BASE}/games/${gameId}/players?user_id=${selectedUserId}`,
+        `${API_BASE}/games/${gameId}/players?user_id=${userId}`,
         {
           method: "POST",
           headers: {
@@ -110,7 +116,7 @@ export default function ChangeHandSetupClient({
   }
 
   function startNextHandSameGame() {
-    router.push(`/games/${gameId}/scorer`)
+    router.push(`/games/${gameId}/scorer?start_next_hand=1`)
     router.refresh()
   }
 
@@ -142,19 +148,19 @@ export default function ChangeHandSetupClient({
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-white">Current Players</h3>
+            <h3 className="text-lg font-bold text-white">Active Players</h3>
             <p className="mt-1 text-sm text-slate-400">
-              Removing a player here should affect future hands only.
+              These players will be included in the next hand.
             </p>
           </div>
 
-          {currentPlayers.length === 0 ? (
+          {activePlayers.length === 0 ? (
             <div className="lp-card-soft">
-              <p className="m-0 text-slate-300">No players in this game.</p>
+              <p className="m-0 text-slate-300">No active players in this game.</p>
             </div>
           ) : (
             <div className="grid gap-3">
-              {currentPlayers.map((p) => (
+              {activePlayers.map((p) => (
                 <div key={p.id} className="lp-card-soft">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -178,13 +184,53 @@ export default function ChangeHandSetupClient({
               ))}
             </div>
           )}
+
+          <div className="mt-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-white">Inactive Players</h3>
+              <p className="mt-1 text-sm text-slate-400">
+                These players remain in the session history and can be reactivated.
+              </p>
+            </div>
+
+            {inactivePlayers.length === 0 ? (
+              <div className="lp-card-soft">
+                <p className="m-0 text-slate-300">No inactive players.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {inactivePlayers.map((p) => (
+                  <div key={p.id} className="lp-card-soft">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-lg font-bold text-white">
+                          {p.display_name}
+                        </div>
+                        <div className="mt-1 break-all text-sm text-slate-400">
+                          {p.id}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => addOrReactivatePlayer(p.id)}
+                        disabled={working}
+                        className="lp-button shrink-0"
+                      >
+                        Reactivate
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
           <div className="mb-4">
             <h3 className="text-lg font-bold text-white">Add Player</h3>
             <p className="mt-1 text-sm text-slate-400">
-              Add an existing player to the same game for the next hand.
+              Add an existing user to the same game for the next hand.
             </p>
           </div>
 
@@ -203,23 +249,12 @@ export default function ChangeHandSetupClient({
             </select>
 
             <button
-              onClick={addPlayer}
+              onClick={() => addOrReactivatePlayer(selectedUserId)}
               disabled={working}
               className="lp-button"
             >
               Add Player
             </button>
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4">
-            <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-              Next step
-            </div>
-            <p className="mt-2 text-sm text-slate-300">
-              Once the backend supports updating next-hand settings, this page will
-              also save cards-per-hand / hand-type changes before starting the next
-              hand.
-            </p>
           </div>
         </div>
       </div>
