@@ -228,12 +228,27 @@ export default function ChangeHandSetupClient({
         },
         body: JSON.stringify(payload),
       })
+
       if (!res.ok) {
         setMsg(`Error saving next-hand settings: ${await res.text()}`)
         return
       }
 
-      router.push(`/games/${gameId}/scorer?start_next_hand=1`)
+      const progressRes = await fetch(`${API_BASE}/games/${gameId}/hand-progress`, {
+        cache: "no-store",
+      })
+
+      if (!progressRes.ok) {
+        const text = await progressRes.text()
+        setMsg(`Error loading current hand progress: ${text}`)
+        return
+      }
+
+      const progressData = await progressRes.json()
+
+      router.push(
+        `/games/${gameId}/scorer?start_next_hand=1&from_hand=${progressData.current_hand_number}`
+      )
       router.refresh()
     } catch (e: any) {
       setMsg(`Error: ${e?.message || String(e)}`)
@@ -241,7 +256,6 @@ export default function ChangeHandSetupClient({
       setWorking(false)
     }
   }
-
   return (
     <section className="lp-card">
       <div className="mb-5">

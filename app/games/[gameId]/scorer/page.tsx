@@ -103,14 +103,16 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ gameId: string }>
-  searchParams?: Promise<{ start_next_hand?: string }>
+  searchParams?: Promise<{ start_next_hand?: string; from_hand?: string }>
 }) {
   const { userId } = await auth()
   if (!userId) redirect("/sign-in")
 
   const { gameId } = await params
   const sp = (await searchParams) ?? {}
+
   const startNextHand = sp.start_next_hand === "1"
+  const startFromHandNumber = sp.from_hand ? Number(sp.from_hand) : null
 
   if (!gameId || gameId === "undefined" || !isUuid(gameId)) {
     return (
@@ -143,6 +145,7 @@ export default async function Page({
       progress={progress}
       appUserId={appUser.id}
       startNextHand={startNextHand}
+      startFromHandNumber={startFromHandNumber}
     />
   )
 }

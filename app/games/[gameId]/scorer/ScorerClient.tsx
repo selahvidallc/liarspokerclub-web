@@ -57,6 +57,7 @@ export default function ScorerClient({
   progress,
   appUserId,
   startNextHand,
+  startFromHandNumber,
 }: {
   gameId: string
   players: Player[]
@@ -64,6 +65,7 @@ export default function ScorerClient({
   progress: HandProgress
   appUserId: string
   startNextHand: boolean
+  startFromHandNumber: number | null
 }) {
   const router = useRouter()
 
@@ -80,13 +82,16 @@ export default function ScorerClient({
 
   const forcingNextHand =
     startNextHand &&
-    (progress.hand_complete || progress.cards_played_in_current_hand > 0)
+    startFromHandNumber !== null &&
+    progress.current_hand_number === startFromHandNumber
 
   const effectiveHandNumber = forcingNextHand
-    ? progress.current_hand_number + 1
+    ? startFromHandNumber + 1
     : progress.current_hand_number
 
-  const cardsPlayed = forcingNextHand ? 0 : progress.cards_played_in_current_hand
+  const cardsPlayed = forcingNextHand
+    ? 0
+    : progress.cards_played_in_current_hand
 
   const cardsRemaining = forcingNextHand
     ? settings.cards_per_hand
