@@ -1,8 +1,10 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
-
+import { auth, currentUser } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 import Link from "next/link"
 import ChangeHandSetupClient from "./ChangeHandSetupClient"
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
 
 type Game = {
   id: string
@@ -21,12 +23,6 @@ type Game = {
   finalized_at: string | null
 }
 
-type User = {
-  id: string
-  email: string
-  display_name: string
-}
-
 type Player = {
   id: string
   display_name: string
@@ -36,6 +32,12 @@ type Player = {
 type PlayersResponse = {
   game_id: string
   players: Player[]
+}
+
+type User = {
+  id: string
+  email: string
+  display_name: string
 }
 
 type Preset = {
@@ -48,6 +50,34 @@ type Preset = {
   skunk_enabled: boolean
   track_bid_trail: boolean
   digit_order_mode: string
+}
+
+type SyncResult = {
+  id: string
+  email: string
+  display_name: string
+  role: "player" | "scorer"
+  created: boolean
+}
+
+async function syncCurrentUser(): Promise<SyncResult> {
+  const user = await currentUser()
+  const email = user?.primaryEmailAddress?.emailAddress
+  if (!email) throw new Error("No signed-in user email found")
+
+  const res = await fetch(`${API_BASE}/users/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      display_name:
+        user?.fullName || user?.username || user?.firstName || "Player",
+    }),
+    cache: "no-store",
+  })
+
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
 }
 
 async function getGame(gameId: string): Promise<Game> {
@@ -83,10 +113,25 @@ export default async function Page({
 }: {
   params: Promise<{ gameId: string }>
 }) {
+  const { userId } = await auth()
+  if (!userId) redirect("/sign-in")
+
   const { gameId } = await params
 
-  const [game, players, users, presets] = await Promise.all([
+  const [appUser, game] = await Promise.all([
+    syncCurrentUser(),
     getGame(gameId),
+  ])
+
+  // 🔒 ACCESS CONTROL
+  if (
+    appUser.role !== "scorer" ||
+    appUser.id !== game.scorekeeper_user_id
+  ) {
+    redirect(`/games/${gameId}/scoreboard`)
+  }
+
+  const [players, users, presets] = await Promise.all([
     getPlayers(gameId),
     getUsers(),
     getPresets(),

@@ -8,6 +8,7 @@ type AppUser = {
   id: string;
   email: string;
   display_name: string;
+  role: "player" | "scorer";
   created: boolean;
 };
 
@@ -130,13 +131,21 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
+        {appUser?.role === "scorer" ? (
           <Link href="/games/new" className="lp-card hover:opacity-90">
             <div className="text-lg font-bold text-white">Create Game</div>
             <div className="mt-2 text-sm text-slate-400">
-              Start a new table with preset rules or a custom setup.
+              Start a new table with your saved rules or a custom setup.
             </div>
           </Link>
+        ) : (
+          <Link href="/metrics" className="lp-card hover:opacity-90">
+            <div className="text-lg font-bold text-white">My Metrics</div>
+            <div className="mt-2 text-sm text-slate-400">
+              Review your results, trends, and long-term performance.
+            </div>
+          </Link>
+        )}
 
           <Link href="/metrics" className="lp-card hover:opacity-90">
             <div className="text-lg font-bold text-white">My Metrics</div>
@@ -211,7 +220,11 @@ export default function DashboardPage() {
               {activeGames.map((game) => (
                 <Link
                   key={game.id}
-                  href={`/games/${game.id}`}
+                  href={
+                    appUser?.role === "scorer"
+                      ? `/games/${game.id}`
+                      : `/games/${game.id}/scoreboard`
+                  }
                   className="lp-card-soft hover:opacity-90"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-4">
@@ -224,9 +237,8 @@ export default function DashboardPage() {
                         {Number(game.base_bet).toFixed(2)}
                       </div>
                     </div>
-
                     <div className="text-sm font-semibold text-slate-300">
-                      Open Game →
+                      {appUser?.role === "scorer" ? "Open Table →" : "View Scoreboard →"}
                     </div>
                   </div>
                 </Link>
