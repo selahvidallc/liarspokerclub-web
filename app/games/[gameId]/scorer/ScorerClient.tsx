@@ -78,18 +78,23 @@ export default function ScorerClient({
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState("")
 
-  const canStartNextHand = startNextHand && progress.hand_complete
-  const effectiveHandNumber = canStartNextHand
-    ? (progress.next_hand_number ?? progress.current_hand_number + 1)
+  const forcingNextHand =
+    startNextHand &&
+    (progress.hand_complete || progress.cards_played_in_current_hand > 0)
+
+  const effectiveHandNumber = forcingNextHand
+    ? progress.current_hand_number + 1
     : progress.current_hand_number
 
-  const cardsPlayed = canStartNextHand ? 0 : progress.cards_played_in_current_hand
-  const cardsRemaining = canStartNextHand
+  const cardsPlayed = forcingNextHand ? 0 : progress.cards_played_in_current_hand
+
+  const cardsRemaining = forcingNextHand
     ? settings.cards_per_hand
     : progress.cards_remaining_in_current_hand
 
   const nextCardNumber = cardsPlayed + 1
-  const handIsActuallyComplete = progress.hand_complete && !canStartNextHand
+
+  const handIsActuallyComplete = progress.hand_complete && !forcingNextHand
 
   useEffect(() => {
     if (handIsActuallyComplete) {
