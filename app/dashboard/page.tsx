@@ -131,21 +131,15 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {appUser?.role === "scorer" ? (
-          <Link href="/games/new" className="lp-card hover:opacity-90">
-            <div className="text-lg font-bold text-white">Create Game</div>
-            <div className="mt-2 text-sm text-slate-400">
-              Start a new table with your saved rules or a custom setup.
-            </div>
-          </Link>
-        ) : (
-          <Link href="/metrics" className="lp-card hover:opacity-90">
-            <div className="text-lg font-bold text-white">My Metrics</div>
-            <div className="mt-2 text-sm text-slate-400">
-              Review your results, trends, and long-term performance.
-            </div>
-          </Link>
-        )}
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {appUser?.role === "scorer" && (
+            <Link href="/games/new" className="lp-card hover:opacity-90">
+              <div className="text-lg font-bold text-white">Create Game</div>
+              <div className="mt-2 text-sm text-slate-400">
+                Start a new table with your saved rules or a custom setup.
+              </div>
+            </Link>
+          )}
 
           <Link href="/metrics" className="lp-card hover:opacity-90">
             <div className="text-lg font-bold text-white">My Metrics</div>
@@ -212,7 +206,9 @@ export default function DashboardPage() {
             <div className="lp-card-soft">
               <div className="text-lg font-semibold text-white">No active games</div>
               <div className="mt-1 text-sm text-slate-400">
-                Start a new table or wait until a scorekeeper adds you to one.
+                {appUser?.role === "scorer"
+                  ? "Start a new table or wait until a scorekeeper adds you to one."
+                  : "Wait until a scorekeeper adds you to a game."}
               </div>
             </div>
           ) : (
@@ -238,7 +234,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-sm font-semibold text-slate-300">
-                      {appUser?.role === "scorer" ? "Open Table →" : "View Scoreboard →"}
+                      {appUser?.role === "scorer"
+                        ? "Open Table →"
+                        : "View Scoreboard →"}
                     </div>
                   </div>
                 </Link>
