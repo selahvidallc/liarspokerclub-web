@@ -18,6 +18,18 @@ type Player = {
   is_active?: boolean
 }
 
+type Preset = {
+  id: string
+  name: string
+  cards_per_hand: number
+  base_bet: string | number
+  bet_ladder: number[] | null
+  nut_enabled: boolean
+  skunk_enabled: boolean
+  track_bid_trail: boolean
+  digit_order_mode: string
+}
+
 function parseLadder(input: string): number[] | null {
   const trimmed = input.trim()
   if (!trimmed) return null
@@ -49,6 +61,7 @@ export default function ChangeHandSetupClient({
   currentSkunkEnabled,
   currentTrackBidTrail,
   currentDigitOrderMode,
+  presets,
 }: {
   gameId: string
   gameTitle: string
@@ -63,11 +76,13 @@ export default function ChangeHandSetupClient({
   currentSkunkEnabled: boolean
   currentTrackBidTrail: boolean
   currentDigitOrderMode: string
+  presets: Preset[]
 }) {
   const router = useRouter()
 
   const [selectedUserId, setSelectedUserId] = useState("")
   const [mode, setMode] = useState<"custom" | "preset">("custom")
+  const [selectedPresetId, setSelectedPresetId] = useState("")
   const [cardsPerHand, setCardsPerHand] = useState(String(currentCardsPerHand))
   const [baseBet, setBaseBet] = useState(currentBaseBet)
   const [betLadder, setBetLadder] = useState(
@@ -100,6 +115,11 @@ export default function ChangeHandSetupClient({
   const availableUsers = useMemo(
     () => users.filter((u) => !activeIds.has(u.id)),
     [users, activeIds]
+  )
+
+  const selectedPreset = useMemo(
+    () => presets.find((p) => p.id === selectedPresetId) || null,
+    [presets, selectedPresetId]
   )
 
   async function addOrReactivatePlayer(userId: string) {
@@ -163,21 +183,39 @@ export default function ChangeHandSetupClient({
   async function startNextHandSameGame() {
     setMsg("")
 
+    let payload: any = {}
+
     if (mode === "preset") {
-      setMsg("Preset switching is not wired yet. Use Custom for now.")
-      return
-    }
+      if (!selectedPresetId) {
+        setMsg("Select a preset first.")
+        return
+      }
 
-    const parsedCards = parseInt(cardsPerHand, 10)
-    if (!Number.isFinite(parsedCards) || parsedCards < 1) {
-      setMsg("Cards per hand must be at least 1.")
-      return
-    }
+      payload = {
+        preset_id: selectedPresetId,
+      }
+    } else {
+      const parsedCards = parseInt(cardsPerHand, 10)
+      if (!Number.isFinite(parsedCards) || parsedCards < 1) {
+        setMsg("Cards per hand must be at least 1.")
+        return
+      }
 
-    const parsedLadder = parseLadder(betLadder)
-    if (betLadder.trim() && parsedLadder === null) {
-      setMsg("Bet ladder must be comma-separated numbers, like: 10, 15, 20")
-      return
+      const parsedLadder = parseLadder(betLadder)
+      if (betLadder.trim() && parsedLadder === null) {
+        setMsg("Bet ladder must be comma-separated numbers, like: 10, 15, 20")
+        return
+      }
+
+      payload = {
+        cards_per_hand: parsedCards,
+        base_bet: baseBet.trim() || null,
+        bet_ladder: parsedLadder,
+        nut_enabled: nutEnabled,
+        skunk_enabled: skunkEnabled,
+        track_bid_trail: trackBidTrail,
+        digit_order_mode: digitOrderMode,
+      }
     }
 
     setWorking(true)
@@ -187,15 +225,7 @@ export default function ChangeHandSetupClient({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          cards_per_hand: parsedCards,
-          base_bet: baseBet.trim() || null,
-          bet_ladder: parsedLadder,
-          nut_enabled: nutEnabled,
-          skunk_enabled: skunkEnabled,
-          track_bid_trail: trackBidTrail,
-          digit_order_mode: digitOrderMode,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
@@ -262,9 +292,46 @@ export default function ChangeHandSetupClient({
             </div>
 
             {mode === "preset" ? (
-              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-                Preset switching is the next thing to wire. For now, use Custom.
-              </div>
+              <>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">
+                    Preset
+                  </label>
+                  <select
+                    value={selectedPresetId}
+                    onChange={(e) => setSelectedPresetId(e.target.value)}
+                  >
+                    <option value="">Select a preset</option>
+                    {presets.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedPreset && (
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
+                    <div className="font-semibold text-white">{selectedPreset.name}</div>
+                    <div className="mt-2">
+                      Cards Per Hand: {selectedPreset.cards_per_hand}
+                    </div>
+                    <div>Base Bet: {String(selectedPreset.base_bet)}</div>
+                    <div>
+                      Bet Ladder:{" "}
+                      {selectedPreset.bet_ladder?.length
+                        ? selectedPreset.bet_ladder.join(", ")
+                        : "Flat"}
+                    </div>
+                    <div>Nut: {selectedPreset.nut_enabled ? "Yes" : "No"}</div>
+                    <div>Skunk: {selectedPreset.skunk_enabled ? "Yes" : "No"}</div>
+                    <div>
+                      Track Bid Trail: {selectedPreset.track_bid_trail ? "Yes" : "No"}
+                    </div>
+                    <div>Digit Order Mode: {selectedPreset.digit_order_mode}</div>
+                  </div>
+                )}
+              </>
             ) : (
               <>
                 <div>

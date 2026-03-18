@@ -38,6 +38,18 @@ type PlayersResponse = {
   players: Player[]
 }
 
+type Preset = {
+  id: string
+  name: string
+  cards_per_hand: number
+  base_bet: string | number
+  bet_ladder: number[] | null
+  nut_enabled: boolean
+  skunk_enabled: boolean
+  track_bid_trail: boolean
+  digit_order_mode: string
+}
+
 async function getGame(gameId: string): Promise<Game> {
   const res = await fetch(`${API_BASE}/games/${gameId}`, { cache: "no-store" })
   if (!res.ok) throw new Error(await res.text())
@@ -60,6 +72,12 @@ async function getUsers(): Promise<User[]> {
   return res.json()
 }
 
+async function getPresets(): Promise<Preset[]> {
+  const res = await fetch(`${API_BASE}/presets`, { cache: "no-store" })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
 export default async function Page({
   params,
 }: {
@@ -67,10 +85,11 @@ export default async function Page({
 }) {
   const { gameId } = await params
 
-  const [game, players, users] = await Promise.all([
+  const [game, players, users, presets] = await Promise.all([
     getGame(gameId),
     getPlayers(gameId),
     getUsers(),
+    getPresets(),
   ])
 
   return (
@@ -119,6 +138,7 @@ export default async function Page({
         currentSkunkEnabled={game.skunk_enabled}
         currentTrackBidTrail={game.track_bid_trail}
         currentDigitOrderMode={game.digit_order_mode}
+        presets={presets}
       />
     </main>
   )
