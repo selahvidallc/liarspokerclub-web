@@ -87,11 +87,15 @@ export default async function Page({
     getHandProgress(gameId),
     getGame(gameId),
   ])
+  const activePlayers = playerData.players.filter((p) => p.is_active !== false)
+
+  console.log("SCORER playerData.players", playerData.players)
+  console.log("SCORER activePlayers", activePlayers)
 
   return (
     <ScorerClient
       gameId={gameId}
-      players={playerData.players.filter((p) => p.is_active)}
+      players={activePlayers}
       settings={settings}
       progress={progress}
       appUserId={game.scorekeeper_user_id}
