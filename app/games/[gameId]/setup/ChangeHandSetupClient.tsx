@@ -25,6 +25,7 @@ export default function ChangeHandSetupClient({
   scorekeeperUserId,
   users,
   currentPlayers,
+  currentCardsPerHand,
 }: {
   gameId: string
   gameTitle: string
@@ -32,10 +33,12 @@ export default function ChangeHandSetupClient({
   scorekeeperUserId: string
   users: User[]
   currentPlayers: Player[]
+  currentCardsPerHand: number
 }) {
   const router = useRouter()
 
   const [selectedUserId, setSelectedUserId] = useState("")
+  const [cardsPerHand, setCardsPerHand] = useState(String(currentCardsPerHand))
   const [msg, setMsg] = useState("")
   const [working, setWorking] = useState(false)
 
@@ -115,9 +118,40 @@ export default function ChangeHandSetupClient({
     }
   }
 
-  function startNextHandSameGame() {
-    router.push(`/games/${gameId}/scorer?start_next_hand=1`)
-    router.refresh()
+  async function startNextHandSameGame() {
+    setMsg("")
+
+    const parsed = parseInt(cardsPerHand, 10)
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      setMsg("Cards per hand must be at least 1.")
+      return
+    }
+
+    setWorking(true)
+    try {
+      const res = await fetch(`${API_BASE}/games/${gameId}/update-settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cards_per_hand: parsed,
+        }),
+      })
+
+      if (!res.ok) {
+        const text = await res.text()
+        setMsg(`Error saving next-hand settings: ${text}`)
+        return
+      }
+
+      router.push(`/games/${gameId}/scorer?start_next_hand=1`)
+      router.refresh()
+    } catch (e: any) {
+      setMsg(`Error: ${e?.message || String(e)}`)
+    } finally {
+      setWorking(false)
+    }
   }
 
   return (
@@ -144,6 +178,84 @@ export default function ChangeHandSetupClient({
           {msg}
         </div>
       )}
+
+      <div className="mb-8 grid gap-6 lg:grid-cols-2">
+        <div className="lp-card-soft">
+          <h3 className="mb-4 text-lg font-bold text-white">Next Hand Settings</h3>
+
+          <div className="grid gap-4">
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
+                Settlement Mode
+              </label>
+              <input
+                value={settlementMode}
+                readOnly
+                className="opacity-70"
+              />
+              <p className="mt-2 text-xs text-slate-500">
+                Locked for the current session.
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
+                Cards Per Hand
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="50"
+                value={cardsPerHand}
+                onChange={(e) => setCardsPerHand(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
+                Hand Type
+              </label>
+              <input
+                value="Hand-type switching not wired yet"
+                readOnly
+                className="opacity-70"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-white">Add Player</h3>
+            <p className="mt-1 text-sm text-slate-400">
+              Add an existing user to the same game for the next hand.
+            </p>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <select
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              disabled={working}
+            >
+              <option value="">Select a user</option>
+              {availableUsers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.display_name} ({u.email})
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => addOrReactivatePlayer(selectedUserId)}
+              disabled={working}
+              className="lp-button"
+            >
+              Add Player
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
@@ -184,78 +296,46 @@ export default function ChangeHandSetupClient({
               ))}
             </div>
           )}
-
-          <div className="mt-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-white">Inactive Players</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                These players remain in the session history and can be reactivated.
-              </p>
-            </div>
-
-            {inactivePlayers.length === 0 ? (
-              <div className="lp-card-soft">
-                <p className="m-0 text-slate-300">No inactive players.</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {inactivePlayers.map((p) => (
-                  <div key={p.id} className="lp-card-soft">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate text-lg font-bold text-white">
-                          {p.display_name}
-                        </div>
-                        <div className="mt-1 break-all text-sm text-slate-400">
-                          {p.id}
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => addOrReactivatePlayer(p.id)}
-                        disabled={working}
-                        className="lp-button shrink-0"
-                      >
-                        Reactivate
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         <div>
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-white">Add Player</h3>
+            <h3 className="text-lg font-bold text-white">Inactive Players</h3>
             <p className="mt-1 text-sm text-slate-400">
-              Add an existing user to the same game for the next hand.
+              These players remain in session history and can be reactivated.
             </p>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-            <select
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              disabled={working}
-            >
-              <option value="">Select a user</option>
-              {availableUsers.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.display_name} ({u.email})
-                </option>
-              ))}
-            </select>
+          {inactivePlayers.length === 0 ? (
+            <div className="lp-card-soft">
+              <p className="m-0 text-slate-300">No inactive players.</p>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {inactivePlayers.map((p) => (
+                <div key={p.id} className="lp-card-soft">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-lg font-bold text-white">
+                        {p.display_name}
+                      </div>
+                      <div className="mt-1 break-all text-sm text-slate-400">
+                        {p.id}
+                      </div>
+                    </div>
 
-            <button
-              onClick={() => addOrReactivatePlayer(selectedUserId)}
-              disabled={working}
-              className="lp-button"
-            >
-              Add Player
-            </button>
-          </div>
+                    <button
+                      onClick={() => addOrReactivatePlayer(p.id)}
+                      disabled={working}
+                      className="lp-button shrink-0"
+                    >
+                      Reactivate
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

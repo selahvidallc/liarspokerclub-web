@@ -219,6 +219,7 @@ export default async function Page({
         scorekeeperUserId={game.scorekeeper_user_id}
         users={users}
         currentPlayers={players}
+        currentCardsPerHand={game.cards_per_hand}
       />
     </main>
   )
