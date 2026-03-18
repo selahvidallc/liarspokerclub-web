@@ -148,6 +148,7 @@ export default function DashboardPage() {
             </div>
           </Link>
 
+
           <Link href="/info" className="lp-card hover:opacity-90">
             <div className="text-lg font-bold text-white">Rules / Info</div>
             <div className="mt-2 text-sm text-slate-400">
