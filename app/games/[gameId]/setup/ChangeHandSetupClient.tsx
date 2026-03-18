@@ -18,6 +18,23 @@ type Player = {
   is_active?: boolean
 }
 
+function parseLadder(input: string): number[] | null {
+  const trimmed = input.trim()
+  if (!trimmed) return null
+
+  const parts = trimmed
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean)
+
+  if (parts.length === 0) return null
+
+  const nums = parts.map((p) => Number(p))
+  if (nums.some((n) => !Number.isFinite(n) || n < 0)) return null
+
+  return nums
+}
+
 export default function ChangeHandSetupClient({
   gameId,
   gameTitle,
@@ -26,6 +43,12 @@ export default function ChangeHandSetupClient({
   users,
   currentPlayers,
   currentCardsPerHand,
+  currentBaseBet,
+  currentBetLadder,
+  currentNutEnabled,
+  currentSkunkEnabled,
+  currentTrackBidTrail,
+  currentDigitOrderMode,
 }: {
   gameId: string
   gameTitle: string
@@ -34,11 +57,28 @@ export default function ChangeHandSetupClient({
   users: User[]
   currentPlayers: Player[]
   currentCardsPerHand: number
+  currentBaseBet: string
+  currentBetLadder: number[] | null
+  currentNutEnabled: boolean
+  currentSkunkEnabled: boolean
+  currentTrackBidTrail: boolean
+  currentDigitOrderMode: string
 }) {
   const router = useRouter()
 
   const [selectedUserId, setSelectedUserId] = useState("")
+  const [mode, setMode] = useState<"custom" | "preset">("custom")
   const [cardsPerHand, setCardsPerHand] = useState(String(currentCardsPerHand))
+  const [baseBet, setBaseBet] = useState(currentBaseBet)
+  const [betLadder, setBetLadder] = useState(
+    currentBetLadder && currentBetLadder.length > 0
+      ? currentBetLadder.join(", ")
+      : ""
+  )
+  const [nutEnabled, setNutEnabled] = useState(currentNutEnabled)
+  const [skunkEnabled, setSkunkEnabled] = useState(currentSkunkEnabled)
+  const [trackBidTrail, setTrackBidTrail] = useState(currentTrackBidTrail)
+  const [digitOrderMode, setDigitOrderMode] = useState(currentDigitOrderMode)
   const [msg, setMsg] = useState("")
   const [working, setWorking] = useState(false)
 
@@ -64,8 +104,12 @@ export default function ChangeHandSetupClient({
 
   async function addOrReactivatePlayer(userId: string) {
     setMsg("")
-    setWorking(true)
+    if (!userId) {
+      setMsg("Select a user first.")
+      return
+    }
 
+    setWorking(true)
     try {
       const res = await fetch(
         `${API_BASE}/games/${gameId}/players?user_id=${userId}`,
@@ -78,8 +122,7 @@ export default function ChangeHandSetupClient({
       )
 
       if (!res.ok) {
-        const text = await res.text()
-        setMsg(`Error: ${text}`)
+        setMsg(`Error: ${await res.text()}`)
         return
       }
 
@@ -105,8 +148,7 @@ export default function ChangeHandSetupClient({
       })
 
       if (!res.ok) {
-        const text = await res.text()
-        setMsg(`Error: ${text}`)
+        setMsg(`Error: ${await res.text()}`)
         return
       }
 
@@ -121,9 +163,20 @@ export default function ChangeHandSetupClient({
   async function startNextHandSameGame() {
     setMsg("")
 
-    const parsed = parseInt(cardsPerHand, 10)
-    if (!Number.isFinite(parsed) || parsed < 1) {
+    if (mode === "preset") {
+      setMsg("Preset switching is not wired yet. Use Custom for now.")
+      return
+    }
+
+    const parsedCards = parseInt(cardsPerHand, 10)
+    if (!Number.isFinite(parsedCards) || parsedCards < 1) {
       setMsg("Cards per hand must be at least 1.")
+      return
+    }
+
+    const parsedLadder = parseLadder(betLadder)
+    if (betLadder.trim() && parsedLadder === null) {
+      setMsg("Bet ladder must be comma-separated numbers, like: 10, 15, 20")
       return
     }
 
@@ -135,13 +188,18 @@ export default function ChangeHandSetupClient({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          cards_per_hand: parsed,
+          cards_per_hand: parsedCards,
+          base_bet: baseBet.trim() || null,
+          bet_ladder: parsedLadder,
+          nut_enabled: nutEnabled,
+          skunk_enabled: skunkEnabled,
+          track_bid_trail: trackBidTrail,
+          digit_order_mode: digitOrderMode,
         }),
       })
 
       if (!res.ok) {
-        const text = await res.text()
-        setMsg(`Error saving next-hand settings: ${text}`)
+        setMsg(`Error saving next-hand settings: ${await res.text()}`)
         return
       }
 
@@ -157,13 +215,12 @@ export default function ChangeHandSetupClient({
   return (
     <section className="lp-card">
       <div className="mb-5">
-        <h2 className="text-2xl font-bold text-white">Roster for Next Hand</h2>
+        <h2 className="text-2xl font-bold text-white">Next Hand Setup</h2>
         <p className="mt-1 text-sm text-slate-400">
-          This keeps you in the same game:{" "}
-          <span className="font-semibold text-slate-200">{gameTitle}</span>
+          Same game: <span className="font-semibold text-slate-200">{gameTitle}</span>
         </p>
         <p className="mt-1 text-sm text-slate-500">
-          Settlement mode remains locked: {settlementMode}
+          Settlement mode stays locked: {settlementMode}
         </p>
       </div>
 
@@ -172,55 +229,125 @@ export default function ChangeHandSetupClient({
           className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
             msg.startsWith("Error")
               ? "border-rose-500/30 bg-rose-500/10 text-rose-200"
-              : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+              : "border-amber-500/30 bg-amber-500/10 text-amber-100"
           }`}
         >
           {msg}
         </div>
       )}
 
-      <div className="mb-8 grid gap-6 lg:grid-cols-2">
+      <div className="mb-8 grid gap-6 xl:grid-cols-2">
         <div className="lp-card-soft">
-          <h3 className="mb-4 text-lg font-bold text-white">Next Hand Settings</h3>
+          <h3 className="mb-4 text-lg font-bold text-white">Rules for Next Hand</h3>
 
           <div className="grid gap-4">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
                 Settlement Mode
               </label>
-              <input
-                value={settlementMode}
-                readOnly
-                className="opacity-70"
-              />
-              <p className="mt-2 text-xs text-slate-500">
-                Locked for the current session.
-              </p>
+              <input value={settlementMode} readOnly className="opacity-70" />
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Cards Per Hand
+                Mode
               </label>
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={cardsPerHand}
-                onChange={(e) => setCardsPerHand(e.target.value)}
-              />
+              <select
+                value={mode}
+                onChange={(e) => setMode(e.target.value as "custom" | "preset")}
+              >
+                <option value="custom">Custom</option>
+                <option value="preset">Preset</option>
+              </select>
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Hand Type
-              </label>
-              <input
-                value="Hand-type switching not wired yet"
-                readOnly
-                className="opacity-70"
-              />
-            </div>
+            {mode === "preset" ? (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                Preset switching is the next thing to wire. For now, use Custom.
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">
+                    Cards Per Hand
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={cardsPerHand}
+                    onChange={(e) => setCardsPerHand(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">
+                    Base Bet
+                  </label>
+                  <input
+                    value={baseBet}
+                    onChange={(e) => setBaseBet(e.target.value)}
+                    placeholder="5.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">
+                    Bet Ladder
+                  </label>
+                  <input
+                    value={betLadder}
+                    onChange={(e) => setBetLadder(e.target.value)}
+                    placeholder="10, 15, 20, 25, 30"
+                  />
+                  <p className="mt-2 text-xs text-slate-500">
+                    Leave blank to keep a flat/default structure.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">
+                    Digit Order Mode
+                  </label>
+                  <input
+                    value={digitOrderMode}
+                    onChange={(e) => setDigitOrderMode(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <label className="flex items-center gap-2 text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={nutEnabled}
+                      onChange={() => setNutEnabled(!nutEnabled)}
+                      className="w-auto"
+                    />
+                    Nut
+                  </label>
+
+                  <label className="flex items-center gap-2 text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={skunkEnabled}
+                      onChange={() => setSkunkEnabled(!skunkEnabled)}
+                      className="w-auto"
+                    />
+                    Skunk
+                  </label>
+
+                  <label className="flex items-center gap-2 text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={trackBidTrail}
+                      onChange={() => setTrackBidTrail(!trackBidTrail)}
+                      className="w-auto"
+                    />
+                    Track Bid Trail
+                  </label>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -257,7 +384,7 @@ export default function ChangeHandSetupClient({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <div>
           <div className="mb-4">
             <h3 className="text-lg font-bold text-white">Active Players</h3>
