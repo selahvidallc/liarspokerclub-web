@@ -223,267 +223,283 @@ export default function ScorerClient({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="mb-1 text-3xl font-extrabold tracking-tight text-white">
-        Scorer
-      </h1>
+  <main className="mx-auto max-w-3xl px-6 py-8">
+    <h1 className="mb-1 text-3xl font-extrabold tracking-tight text-white">
+      Scorer
+    </h1>
 
-      <div className="mb-6 text-sm text-slate-400">
-        Game: <code className="rounded bg-white/5 px-2 py-1 text-slate-200">{gameId}</code>
+    <div className="mb-6 text-sm text-slate-400">
+      Game:{" "}
+      <code className="rounded bg-white/5 px-2 py-1 text-slate-200">
+        {gameId}
+      </code>
+    </div>
+
+    <section className="lp-card mb-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-white">{settings.title}</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Settlement Mode:{" "}
+            <span className="font-semibold text-slate-200">
+              {settings.settlement_mode}
+            </span>
+          </p>
+        </div>
+
+        <div className="lp-badge">Hand #{effectiveHandNumber}</div>
       </div>
 
-      <section className="lp-card mb-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-bold text-white">{settings.title}</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Settlement Mode: <span className="font-semibold text-slate-200">{settings.settlement_mode}</span>
-            </p>
-          </div>
-
-          <div className="lp-badge">
-            Hand #{effectiveHandNumber}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="lp-card-soft">
+          <div className="text-sm text-slate-400">Cards Per Hand</div>
+          <div className="mt-1 text-lg font-bold text-white">
+            {settings.cards_per_hand}
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="lp-card-soft">
-            <div className="text-sm text-slate-400">Cards Per Hand</div>
-            <div className="mt-1 text-lg font-bold text-white">{settings.cards_per_hand}</div>
-          </div>
-
-          <div className="lp-card-soft">
-            <div className="text-sm text-slate-400">Card In This Hand</div>
-            <div className="mt-1 text-lg font-bold text-white">
-              {handIsActuallyComplete
-                ? `${settings.cards_per_hand} of ${settings.cards_per_hand}`
-                : `${nextCardNumber} of ${settings.cards_per_hand}`}
-            </div>
-          </div>
-
-          <div className="lp-card-soft">
-            <div className="text-sm text-slate-400">Cards Remaining After Save</div>
-            <div className="mt-1 text-lg font-bold text-white">
-              {Math.max(0, cardsRemaining - 1)}
-            </div>
-          </div>
-
-          <div className="lp-card-soft">
-            <div className="text-sm text-slate-400">Current Card Bet</div>
-            <div className="mt-1 text-lg font-bold text-white">{money(resolvedBet)}</div>
+        <div className="lp-card-soft">
+          <div className="text-sm text-slate-400">Card In This Hand</div>
+          <div className="mt-1 text-lg font-bold text-white">
+            {handIsActuallyComplete
+              ? `${settings.cards_per_hand} of ${settings.cards_per_hand}`
+              : `${nextCardNumber} of ${settings.cards_per_hand}`}
           </div>
         </div>
 
-        <div className="mt-4 lp-card-soft">
-          <div className="text-sm text-slate-400">Ladder</div>
-          <div className="mt-1 font-semibold text-slate-100">
-            {settings.bet_ladder && settings.bet_ladder.length > 0
-              ? settings.bet_ladder.map((v) => money(v)).join(", ")
-              : `Flat ${money(settings.base_bet)}`}
+        <div className="lp-card-soft">
+          <div className="text-sm text-slate-400">Cards Remaining After Save</div>
+          <div className="mt-1 text-lg font-bold text-white">
+            {Math.max(0, cardsRemaining - 1)}
           </div>
         </div>
-      </section>
 
-      {msg && (
-        <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-          <div className="whitespace-pre-wrap">{msg}</div>
+        <div className="lp-card-soft">
+          <div className="text-sm text-slate-400">Current Card Bet</div>
+          <div className="mt-1 text-lg font-bold text-white">
+            {money(resolvedBet)}
+          </div>
         </div>
-      )}
+      </div>
 
-      {!handIsActuallyComplete ? (
-        <section className="lp-card">
-          <div className="grid gap-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Bid Owner
+      <div className="mt-4 lp-card-soft">
+        <div className="text-sm text-slate-400">Ladder</div>
+        <div className="mt-1 font-semibold text-slate-100">
+          {settings.bet_ladder && settings.bet_ladder.length > 0
+            ? settings.bet_ladder.map((v) => money(v)).join(", ")
+            : `Flat ${money(settings.base_bet)}`}
+        </div>
+      </div>
+    </section>
+
+    {msg && (
+      <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+        <div className="whitespace-pre-wrap">{msg}</div>
+      </div>
+    )}
+
+    {!handIsActuallyComplete ? (
+      <section className="lp-card">
+        <div className="mb-4 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-4 py-3">
+          <div className="lp-interactive-title">Scoring Entry</div>
+          <div className="lp-interactive-help">
+            These are the live scoring controls for the current card.
+          </div>
+        </div>
+
+        <div className="grid gap-5">
+          <div className="lp-interactive-panel">
+            <label className="lp-form-label">Bid Owner</label>
+            <select
+              className="lp-select-strong"
+              value={bidOwner}
+              onChange={(e) => setBidOwner(e.target.value)}
+            >
+              <option value="">Select</option>
+              {players.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.display_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="lp-interactive-panel">
+            <label className="lp-form-label">Outcome</label>
+            <div className="lp-toggle-row">
+              <label className="flex items-center gap-2 text-slate-200">
+                <input
+                  type="radio"
+                  name="outcome"
+                  checked={bidOwnerWon === true}
+                  onChange={() => setBidOwnerWon(true)}
+                  className="w-auto"
+                />
+                Bid Owner WON
               </label>
+
+              <label className="flex items-center gap-2 text-slate-200">
+                <input
+                  type="radio"
+                  name="outcome"
+                  checked={bidOwnerWon === false}
+                  onChange={() => setBidOwnerWon(false)}
+                  className="w-auto"
+                />
+                Bid Owner LOST
+              </label>
+            </div>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="lp-interactive-panel">
+              <label className="lp-form-label">Bid Count</label>
+              <input
+                className="lp-input-strong"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={count}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "")
+                  setCount(value)
+                }}
+                placeholder="3"
+              />
+            </div>
+
+            <div className="lp-interactive-panel">
+              <label className="lp-form-label">Face</label>
               <select
-                value={bidOwner}
-                onChange={(e) => setBidOwner(e.target.value)}
+                className="lp-select-strong"
+                value={face}
+                onChange={(e) => setFace(e.target.value)}
               >
-                <option value="">Select</option>
-                {players.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.display_name}
+                {["2", "3", "4", "5", "6", "7", "8", "9", "10", "A"].map((v) => (
+                  <option key={v} value={v}>
+                    {v}
                   </option>
                 ))}
               </select>
             </div>
+          </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Outcome
-              </label>
-              <div className="flex flex-wrap gap-5">
-                <label className="flex items-center gap-2 text-slate-200">
-                  <input
-                    type="radio"
-                    name="outcome"
-                    checked={bidOwnerWon === true}
-                    onChange={() => setBidOwnerWon(true)}
-                    className="w-auto"
-                  />
-                  Bid Owner WON
-                </label>
+          <div className="lp-interactive-panel">
+            <label className="lp-form-label">Bet Amount Override (optional)</label>
+            <input
+              className="lp-input-strong"
+              placeholder="Leave blank to use ladder/default"
+              value={betAmount}
+              onChange={(e) => setBetAmount(e.target.value)}
+            />
+          </div>
 
-                <label className="flex items-center gap-2 text-slate-200">
-                  <input
-                    type="radio"
-                    name="outcome"
-                    checked={bidOwnerWon === false}
-                    onChange={() => setBidOwnerWon(false)}
-                    className="w-auto"
-                  />
-                  Bid Owner LOST
-                </label>
-              </div>
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
-                  Bid Count
-                </label>
+          <div className="lp-interactive-panel">
+            <label className="lp-form-label">Flags</label>
+            <div className="lp-toggle-row">
+              <label className="flex items-center gap-2 text-slate-200">
                 <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={count}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "")
-                    setCount(value)
+                  type="checkbox"
+                  checked={nut}
+                  onChange={() => {
+                    const next = !nut
+                    setNut(next)
+                    if (next) setSkunk(false)
                   }}
-                  placeholder="3"
+                  className="w-auto"
                 />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
-                  Face
-                </label>
-                <select value={face} onChange={(e) => setFace(e.target.value)}>
-                  {["2", "3", "4", "5", "6", "7", "8", "9", "10", "A"].map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Bet Amount Override (optional)
+                Nut (double)
               </label>
-              <input
-                placeholder="Leave blank to use ladder/default"
-                value={betAmount}
-                onChange={(e) => setBetAmount(e.target.value)}
-              />
-            </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Flags
+              <label
+                className={`flex items-center gap-2 ${
+                  nut ? "opacity-50" : "text-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={skunk}
+                  disabled={nut}
+                  onChange={() => setSkunk(!skunk)}
+                  className="w-auto"
+                />
+                Skunk (double)
               </label>
-              <div className="flex flex-wrap gap-5">
-                <label className="flex items-center gap-2 text-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={nut}
-                    onChange={() => {
-                      const next = !nut
-                      setNut(next)
-                      if (next) setSkunk(false)
-                    }}
-                    className="w-auto"
-                  />
-                  Nut (double)
-                </label>
-
-                <label
-                  className={`flex items-center gap-2 ${
-                    nut ? "opacity-50" : "text-slate-200"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={skunk}
-                    disabled={nut}
-                    onChange={() => setSkunk(!skunk)}
-                    className="w-auto"
-                  />
-                  Skunk (double)
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Notes (optional)
-              </label>
-              <textarea
-                className="min-h-[96px]"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                onClick={submit}
-                disabled={saving || handIsActuallyComplete}
-                className="lp-button"
-              >
-                {saving ? "Saving..." : handIsActuallyComplete ? "Hand Complete" : "Save Card"}
-              </button>
-
-              <a
-                href={`/games/${gameId}/scoreboard`}
-                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-              >
-                Go to Scoreboard →
-              </a>
-
-              <a
-                href={`/games/${gameId}`}
-                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-              >
-                Back to Table →
-              </a>
-
-              <button onClick={finalizeCumCum} disabled={saving} className="lp-button">
-                Finalize Session
-              </button>
-
-              <a
-                href={`/info?gameId=${gameId}`}
-                className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-              >
-                Liars Poker Info
-              </a>
             </div>
           </div>
-        </section>
-      ) : (
-        <section className="lp-card mb-6">
-          <div className="mb-4 text-lg font-bold text-white">
-            This hand is complete. Start the next hand, view the scoreboard, or end the
-            session.
+
+          <div className="lp-interactive-panel">
+            <label className="lp-form-label">Notes (optional)</label>
+            <textarea
+              className="lp-textarea-strong min-h-[96px]"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
           </div>
 
-          <p className="mb-4 text-sm text-slate-400">
-            You cannot score more cards in this hand. Choose the next session action
-            below.
-          </p>
+          <div className="lp-action-strip flex flex-wrap items-center gap-3 pt-2">
+            <button
+              onClick={submit}
+              disabled={saving || handIsActuallyComplete}
+              className="lp-button"
+            >
+              {saving
+                ? "Saving..."
+                : handIsActuallyComplete
+                ? "Hand Complete"
+                : "Save Card"}
+            </button>
 
-          <GameSessionActions
-            gameId={gameId}
-            handComplete={true}
-            appUserId={appUserId}
-          />
-        </section>
-      )}
-    </main>
+            <a
+              href={`/games/${gameId}/scoreboard`}
+              className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+            >
+              Go to Scoreboard →
+            </a>
+
+            <a
+              href={`/games/${gameId}`}
+              className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+            >
+              Back to Table →
+            </a>
+
+            <button
+              onClick={finalizeCumCum}
+              disabled={saving}
+              className="lp-button"
+            >
+              Finalize Session
+            </button>
+
+            <a
+              href={`/info?gameId=${gameId}`}
+              className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+            >
+              Liars Poker Info
+            </a>
+          </div>
+        </div>
+      </section>
+    ) : (
+      <section className="lp-card mb-6">
+        <div className="mb-4 text-lg font-bold text-white">
+          This hand is complete. Start the next hand, view the scoreboard, or end
+          the session.
+        </div>
+
+        <p className="mb-4 text-sm text-slate-400">
+          You cannot score more cards in this hand. Choose the next session action
+          below.
+        </p>
+
+        <GameSessionActions
+          gameId={gameId}
+          handComplete={true}
+          appUserId={appUserId}
+        />
+      </section>
+    )}
+  </main>
   )
 }

@@ -237,22 +237,20 @@ export default function NewGameClient({
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Title
-              </label>
+            <div className="lp-interactive-panel">
+              <label className="lp-form-label">Title</label>
               <input
+                className="lp-input-strong"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter game name"
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Settlement Mode
-              </label>
+            <div className="lp-interactive-panel">
+              <label className="lp-form-label">Settlement Mode</label>
               <select
+                className="lp-select-strong"
                 value={settlementMode}
                 onChange={(e) => setSettlementMode(e.target.value)}
               >
@@ -263,22 +261,20 @@ export default function NewGameClient({
               </select>
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Created By
-              </label>
+            <div className="lp-interactive-panel">
+              <label className="lp-form-label">Created By</label>
               <input
+                className="lp-input-strong opacity-70"
                 value={appUser?.display_name || ""}
                 readOnly
                 placeholder={syncingUser ? "Syncing signed-in user..." : "Not available"}
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Scorekeeper
-              </label>
+            <div className="lp-interactive-panel">
+              <label className="lp-form-label">Scorekeeper</label>
               <input
+                className="lp-input-strong opacity-70"
                 value={appUser?.display_name || ""}
                 readOnly
                 placeholder={syncingUser ? "Syncing signed-in user..." : "Not available"}
@@ -295,35 +291,37 @@ export default function NewGameClient({
             </p>
           </div>
 
-          <div className="mb-6 flex flex-wrap gap-6">
-            <label className="flex items-center gap-2 text-slate-200">
-              <input
-                type="radio"
-                checked={mode === "preset"}
-                onChange={() => setMode("preset")}
-                className="w-auto"
-              />
-              Use Preset
-            </label>
+          <div className="lp-interactive-panel mb-6">
+            <div className="mb-3 lp-interactive-title">Choose Rules Mode</div>
+            <div className="lp-toggle-row">
+              <label className="flex items-center gap-2 text-slate-200">
+                <input
+                  type="radio"
+                  checked={mode === "preset"}
+                  onChange={() => setMode("preset")}
+                  className="w-auto"
+                />
+                Use Preset
+              </label>
 
-            <label className="flex items-center gap-2 text-slate-200">
-              <input
-                type="radio"
-                checked={mode === "custom"}
-                onChange={() => setMode("custom")}
-                className="w-auto"
-              />
-              Custom
-            </label>
+              <label className="flex items-center gap-2 text-slate-200">
+                <input
+                  type="radio"
+                  checked={mode === "custom"}
+                  onChange={() => setMode("custom")}
+                  className="w-auto"
+                />
+                Custom
+              </label>
+            </div>
           </div>
 
           {mode === "preset" ? (
             <div className="grid gap-4">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
-                  Preset
-                </label>
+              <div className="lp-interactive-panel">
+                <label className="lp-form-label">Preset</label>
                 <select
+                  className="lp-select-strong"
                   value={presetId}
                   onChange={(e) => setPresetId(e.target.value)}
                 >
@@ -337,7 +335,7 @@ export default function NewGameClient({
               </div>
 
               {selectedPreset && (
-                <div className="lp-card-soft">
+                <div className="rounded-2xl border border-sky-400/25 bg-sky-400/10 p-4">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div className="text-lg font-bold text-white">
                       {selectedPreset.name}
@@ -347,24 +345,24 @@ export default function NewGameClient({
                     )}
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2 text-sm">
                     <div>
-                      <div className="text-sm text-slate-400">Cards Per Hand</div>
-                      <div className="mt-1 font-semibold text-slate-100">
+                      <div className="text-slate-300">Cards Per Hand</div>
+                      <div className="mt-1 font-semibold text-white">
                         {selectedPreset.cards_per_hand}
                       </div>
                     </div>
 
                     <div>
-                      <div className="text-sm text-slate-400">Digit Order Mode</div>
-                      <div className="mt-1 font-semibold text-slate-100">
+                      <div className="text-slate-300">Digit Order Mode</div>
+                      <div className="mt-1 font-semibold text-white">
                         {selectedPreset.digit_order_mode}
                       </div>
                     </div>
 
                     <div className="sm:col-span-2">
-                      <div className="text-sm text-slate-400">Bet Structure</div>
-                      <div className="mt-1 font-semibold text-slate-100">
+                      <div className="text-slate-300">Bet Structure</div>
+                      <div className="mt-1 font-semibold text-white">
                         {selectedPreset.bet_ladder &&
                         selectedPreset.bet_ladder.length > 0
                           ? selectedPreset.bet_ladder.join(", ")
@@ -401,11 +399,10 @@ export default function NewGameClient({
             </div>
           ) : (
             <div className="grid gap-5 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
-                  Cards Per Hand
-                </label>
+              <div className="lp-interactive-panel">
+                <label className="lp-form-label">Cards Per Hand</label>
                 <input
+                  className="lp-input-strong"
                   type="number"
                   min={1}
                   value={cardsPerHand}
@@ -415,34 +412,29 @@ export default function NewGameClient({
                 />
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
-                  Base Bet
-                </label>
+              <div className="lp-interactive-panel">
+                <label className="lp-form-label">Base Bet</label>
                 <input
+                  className="lp-input-strong"
                   value={baseBet}
                   onChange={(e) => setBaseBet(e.target.value)}
                   placeholder="5.00"
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
-                  Bet Ladder (comma separated)
-                </label>
+              <div className="lp-interactive-panel md:col-span-2">
+                <label className="lp-form-label">Bet Ladder (comma separated)</label>
                 <input
+                  className="lp-input-strong"
                   value={betLadder}
                   onChange={(e) => setBetLadder(e.target.value)}
                   placeholder="10,15,20,25,30"
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <div className="mb-2 block text-sm font-semibold text-slate-300">
-                  Options
-                </div>
-
-                <div className="flex flex-wrap gap-5">
+              <div className="lp-interactive-panel md:col-span-2">
+                <label className="lp-form-label">Options</label>
+                <div className="lp-toggle-row">
                   <label className="flex items-center gap-2 text-slate-200">
                     <input
                       type="checkbox"
@@ -476,28 +468,28 @@ export default function NewGameClient({
               </div>
 
               <div className="md:col-span-2">
-                <div className="lp-card-soft">
-                  <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">
+                <div className="rounded-2xl border border-sky-400/25 bg-sky-400/10 p-4">
+                  <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-200">
                     Custom Rule Preview
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <div className="text-sm text-slate-400">Cards Per Hand</div>
-                      <div className="mt-1 font-semibold text-slate-100">
+                      <div className="text-sm text-slate-300">Cards Per Hand</div>
+                      <div className="mt-1 font-semibold text-white">
                         {cardsPerHand}
                       </div>
                     </div>
 
                     <div>
-                      <div className="text-sm text-slate-400">Base Bet</div>
-                      <div className="mt-1 font-semibold text-slate-100">
+                      <div className="text-sm text-slate-300">Base Bet</div>
+                      <div className="mt-1 font-semibold text-white">
                         {baseBet}
                       </div>
                     </div>
 
                     <div className="sm:col-span-2">
-                      <div className="text-sm text-slate-400">Parsed Ladder</div>
-                      <div className="mt-1 font-semibold text-slate-100">
+                      <div className="text-sm text-slate-300">Parsed Ladder</div>
+                      <div className="mt-1 font-semibold text-white">
                         {parseLadder(betLadder).length > 0
                           ? parseLadder(betLadder).join(", ")
                           : "No ladder values detected"}
@@ -510,13 +502,17 @@ export default function NewGameClient({
           )}
         </section>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="lp-action-strip flex flex-wrap gap-3">
           <button
             onClick={submit}
             disabled={saving || syncingUser || !appUser}
             className="lp-button"
           >
-            {saving ? "Creating..." : syncingUser ? "Preparing User..." : "Create Game"}
+            {saving
+              ? "Creating..."
+              : syncingUser
+              ? "Preparing User..."
+              : "Create Game"}
           </button>
 
           <a

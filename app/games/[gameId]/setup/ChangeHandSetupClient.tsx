@@ -247,7 +247,8 @@ export default function ChangeHandSetupClient({
       <div className="mb-5">
         <h2 className="text-2xl font-bold text-white">Next Hand Setup</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Same game: <span className="font-semibold text-slate-200">{gameTitle}</span>
+          Same game:{" "}
+          <span className="font-semibold text-slate-200">{gameTitle}</span>
         </p>
         <p className="mt-1 text-sm text-slate-500">
           Settlement mode stays locked: {settlementMode}
@@ -267,22 +268,23 @@ export default function ChangeHandSetupClient({
       )}
 
       <div className="mb-8 grid gap-6 xl:grid-cols-2">
-        <div className="lp-card-soft">
-          <h3 className="mb-4 text-lg font-bold text-white">Rules for Next Hand</h3>
+        <div className="lp-interactive-panel">
+          <h3 className="mb-4 lp-interactive-title text-lg">Rules for Next Hand</h3>
 
           <div className="grid gap-4">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Settlement Mode
-              </label>
-              <input value={settlementMode} readOnly className="opacity-70" />
+              <label className="lp-form-label">Settlement Mode</label>
+              <input
+                value={settlementMode}
+                readOnly
+                className="lp-input-strong opacity-70"
+              />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Mode
-              </label>
+              <label className="lp-form-label">Mode</label>
               <select
+                className="lp-select-strong"
                 value={mode}
                 onChange={(e) => setMode(e.target.value as "custom" | "preset")}
               >
@@ -294,10 +296,9 @@ export default function ChangeHandSetupClient({
             {mode === "preset" ? (
               <>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">
-                    Preset
-                  </label>
+                  <label className="lp-form-label">Preset</label>
                   <select
+                    className="lp-select-strong"
                     value={selectedPresetId}
                     onChange={(e) => setSelectedPresetId(e.target.value)}
                   >
@@ -311,8 +312,10 @@ export default function ChangeHandSetupClient({
                 </div>
 
                 {selectedPreset && (
-                  <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
-                    <div className="font-semibold text-white">{selectedPreset.name}</div>
+                  <div className="rounded-2xl border border-sky-400/25 bg-sky-400/10 p-4 text-sm text-slate-200">
+                    <div className="font-semibold text-white">
+                      {selectedPreset.name}
+                    </div>
                     <div className="mt-2">
                       Cards Per Hand: {selectedPreset.cards_per_hand}
                     </div>
@@ -326,7 +329,8 @@ export default function ChangeHandSetupClient({
                     <div>Nut: {selectedPreset.nut_enabled ? "Yes" : "No"}</div>
                     <div>Skunk: {selectedPreset.skunk_enabled ? "Yes" : "No"}</div>
                     <div>
-                      Track Bid Trail: {selectedPreset.track_bid_trail ? "Yes" : "No"}
+                      Track Bid Trail:{" "}
+                      {selectedPreset.track_bid_trail ? "Yes" : "No"}
                     </div>
                     <div>Digit Order Mode: {selectedPreset.digit_order_mode}</div>
                   </div>
@@ -335,10 +339,9 @@ export default function ChangeHandSetupClient({
             ) : (
               <>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">
-                    Cards Per Hand
-                  </label>
+                  <label className="lp-form-label">Cards Per Hand</label>
                   <input
+                    className="lp-input-strong"
                     type="number"
                     min="1"
                     max="50"
@@ -348,10 +351,9 @@ export default function ChangeHandSetupClient({
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">
-                    Base Bet
-                  </label>
+                  <label className="lp-form-label">Base Bet</label>
                   <input
+                    className="lp-input-strong"
                     value={baseBet}
                     onChange={(e) => setBaseBet(e.target.value)}
                     placeholder="5.00"
@@ -359,10 +361,9 @@ export default function ChangeHandSetupClient({
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">
-                    Bet Ladder
-                  </label>
+                  <label className="lp-form-label">Bet Ladder</label>
                   <input
+                    className="lp-input-strong"
                     value={betLadder}
                     onChange={(e) => setBetLadder(e.target.value)}
                     placeholder="10, 15, 20, 25, 30"
@@ -373,61 +374,64 @@ export default function ChangeHandSetupClient({
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">
-                    Digit Order Mode
-                  </label>
+                  <label className="lp-form-label">Digit Order Mode</label>
                   <input
+                    className="lp-input-strong"
                     value={digitOrderMode}
                     onChange={(e) => setDigitOrderMode(e.target.value)}
                   />
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <label className="flex items-center gap-2 text-slate-200">
-                    <input
-                      type="checkbox"
-                      checked={nutEnabled}
-                      onChange={() => setNutEnabled(!nutEnabled)}
-                      className="w-auto"
-                    />
-                    Nut
-                  </label>
+                <div className="lp-interactive-panel">
+                  <label className="lp-form-label">Options</label>
+                  <div className="lp-toggle-row">
+                    <label className="flex items-center gap-2 text-slate-200">
+                      <input
+                        type="checkbox"
+                        checked={nutEnabled}
+                        onChange={() => setNutEnabled(!nutEnabled)}
+                        className="w-auto"
+                      />
+                      Nut
+                    </label>
 
-                  <label className="flex items-center gap-2 text-slate-200">
-                    <input
-                      type="checkbox"
-                      checked={skunkEnabled}
-                      onChange={() => setSkunkEnabled(!skunkEnabled)}
-                      className="w-auto"
-                    />
-                    Skunk
-                  </label>
+                    <label className="flex items-center gap-2 text-slate-200">
+                      <input
+                        type="checkbox"
+                        checked={skunkEnabled}
+                        onChange={() => setSkunkEnabled(!skunkEnabled)}
+                        className="w-auto"
+                      />
+                      Skunk
+                    </label>
 
-                  <label className="flex items-center gap-2 text-slate-200">
-                    <input
-                      type="checkbox"
-                      checked={trackBidTrail}
-                      onChange={() => setTrackBidTrail(!trackBidTrail)}
-                      className="w-auto"
-                    />
-                    Track Bid Trail
-                  </label>
+                    <label className="flex items-center gap-2 text-slate-200">
+                      <input
+                        type="checkbox"
+                        checked={trackBidTrail}
+                        onChange={() => setTrackBidTrail(!trackBidTrail)}
+                        className="w-auto"
+                      />
+                      Track Bid Trail
+                    </label>
+                  </div>
                 </div>
               </>
             )}
           </div>
         </div>
 
-        <div>
+        <div className="lp-interactive-panel">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-white">Add Player</h3>
-            <p className="mt-1 text-sm text-slate-400">
+            <h3 className="lp-interactive-title text-lg">Add Player</h3>
+            <p className="lp-interactive-help mt-1">
               Add an existing user to the same game for the next hand.
             </p>
           </div>
 
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <select
+              className="lp-select-strong"
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
               disabled={working}
@@ -461,13 +465,16 @@ export default function ChangeHandSetupClient({
           </div>
 
           {activePlayers.length === 0 ? (
-            <div className="lp-card-soft">
+            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
               <p className="m-0 text-slate-300">No active players in this game.</p>
             </div>
           ) : (
             <div className="grid gap-3">
               {activePlayers.map((p) => (
-                <div key={p.id} className="lp-card-soft">
+                <div
+                  key={p.id}
+                  className="rounded-2xl border border-white/10 bg-slate-900/70 p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="truncate text-lg font-bold text-white">
@@ -501,13 +508,16 @@ export default function ChangeHandSetupClient({
           </div>
 
           {inactivePlayers.length === 0 ? (
-            <div className="lp-card-soft">
+            <div className="rounded-2xl border border-slate-700/70 bg-slate-900/50 p-4 opacity-85">
               <p className="m-0 text-slate-300">No inactive players.</p>
             </div>
           ) : (
             <div className="grid gap-3">
               {inactivePlayers.map((p) => (
-                <div key={p.id} className="lp-card-soft">
+                <div
+                  key={p.id}
+                  className="rounded-2xl border border-slate-700/70 bg-slate-900/50 p-4 opacity-85"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="truncate text-lg font-bold text-white">
@@ -533,7 +543,7 @@ export default function ChangeHandSetupClient({
         </div>
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="lp-action-strip mt-8 flex flex-wrap gap-3">
         <button
           onClick={startNextHandSameGame}
           disabled={working}
