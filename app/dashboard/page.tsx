@@ -61,6 +61,7 @@ export default function DashboardPage() {
     const run = async () => {
       try {
         setError(null);
+        setNotAuthorized(false);
 
         const email = user.primaryEmailAddress?.emailAddress;
         if (!email) {
@@ -83,7 +84,6 @@ export default function DashboardPage() {
           setNotAuthorized(true);
           setAppUser(null);
           setGames([]);
-          setLoadingGames(false);
           return;
         }
 
@@ -91,7 +91,6 @@ export default function DashboardPage() {
           throw new Error(syncData?.detail || "Failed to sync user");
         }
 
-        setNotAuthorized(false);
         setAppUser(syncData);
 
         const gamesRes = await fetch(
@@ -99,10 +98,15 @@ export default function DashboardPage() {
           { cache: "no-store" }
         );
 
+        const gamesData = await gamesRes.json();
+
+        if (!gamesRes.ok) {
+          throw new Error(gamesData?.detail || "Failed to load games");
+        }
+
         setGames(gamesData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
-        setLoadingGames(false);
       } finally {
         setLoadingGames(false);
       }
