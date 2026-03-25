@@ -20,6 +20,11 @@ type CardDetail = {
   notes: string | null;
 };
 
+type CardGroup = {
+  card_number: number;
+  rows: CardDetail[];
+};
+
 type HandBoard = {
   hand_number: number;
   cards: string[];
@@ -61,11 +66,18 @@ type Game = {
   scorekeeper_user_id: string;
 };
 
+type PlayerOption = {
+  id: string;
+  display_name: string;
+};
+
+
 type Props = {
   gameId: string;
   data: SessionScoreboardResponse;
   progress: HandProgress | null;
   game: Game;
+  players: PlayerOption[];
 };
 
 function money(v: number | string | undefined) {
@@ -81,54 +93,90 @@ function amountClass(v: number) {
   return "text-slate-300";
 }
 
+function playerName(
+  players: { id: string; display_name: string }[],
+  id: string | null
+) {
+  if (!id) return "—";
+  return players.find((p) => p.id === id)?.display_name || id;
+}
+
+function groupCards(cards: CardDetail[]): CardGroup[] {
+  const grouped = new Map<number, CardDetail[]>();
+
+  for (const row of cards) {
+    const list = grouped.get(row.card_number) || [];
+    list.push(row);
+    grouped.set(row.card_number, list);
+  }
+
+  return Array.from(grouped.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([card_number, rows]) => ({
+      card_number,
+      rows,
+    }));
+}
+
 export default function ScoreboardClient({
   gameId,
   data,
   progress,
   game,
+  players,
 }: Props) {
+
   const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
 
-  const [editingCard, setEditingCard] = useState<CardDetail | null>(null);
+  const [editingCardGroup, setEditingCardGroup] = useState<CardGroup | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editWinnerUserId, setEditWinnerUserId] = useState("");
   const [editAmount, setEditAmount] = useState("");
   const [editBid, setEditBid] = useState("");
   const [editNotes, setEditNotes] = useState("");
 
-  function openEdit(card: CardDetail) {
-    setEditingCard(card);
-    setEditAmount(String(card.amount_won ?? ""));
-    setEditBid(card.final_bid_raw ?? "");
-    setEditNotes(card.notes ?? "");
+  function openEditGroup(group: CardGroup) {
+    const first = group.rows[0];
+    setEditingCardGroup(group);
+    setEditWinnerUserId(first.winner_user_id ?? "");
+    setEditAmount(String(first.amount_won ?? ""));
+    setEditBid(first.final_bid_raw ?? "");
+    setEditNotes(first.notes ?? "");
   }
 
   async function saveEdit() {
-    if (!editingCard) return;
+    if (!editingCardGroup) return;
 
     setSaving(true);
     try {
-      const res = await fetch(
-        `${API_BASE}/games/${gameId}/hands/${editingCard.row_id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount_won: editAmount === "" ? null : Number(editAmount),
-            final_bid_raw: editBid,
-            notes: editNotes,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/games/${gameId}/hands/by-card`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hand_number: data.hands.find((h) =>
+            groupCards(h.cards_detail).some(
+              (g) => g.card_number === editingCardGroup.card_number &&
+                JSON.stringify(g.rows.map((r) => r.row_id).sort()) ===
+                JSON.stringify(editingCardGroup.rows.map((r) => r.row_id).sort())
+            )
+          )?.hand_number,
+          card_number: editingCardGroup.card_number,
+          winner_user_id: editWinnerUserId,
+          amount_won: editAmount === "" ? 0 : Number(editAmount),
+          final_bid_raw: editBid,
+          notes: editNotes,
+        }),
+      });
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || "Failed to update card");
+        throw new Error(text || "Failed to update card group");
       }
 
       window.location.reload();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update card");
+      alert(err instanceof Error ? err.message : "Failed to update card group");
     } finally {
       setSaving(false);
     }
@@ -258,37 +306,77 @@ export default function ScoreboardClient({
               </div>
 
               <div className="divide-y divide-white/10">
-                {hand.cards_detail.length === 0 ? (
+                {groupCards(hand.cards_detail).length === 0 ? (
                   <div className="px-4 py-3 text-sm text-slate-400">
                     No card detail rows found.
                   </div>
                 ) : (
-                  hand.cards_detail.map((card) => (
-                    <div
-                      key={card.row_id}
-                      className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-                    >
-                      <div className="text-sm text-slate-300">
-                        <div>
-                          <span className="font-semibold text-white">
-                            Card {card.card_number}
-                          </span>{" "}
-                          • {money(card.amount_won)}
-                        </div>
-                        <div className="mt-1 text-xs text-slate-400">
-                          Bid: {card.final_bid_raw || "—"}
-                          {card.notes ? ` • ${card.notes}` : ""}
-                        </div>
-                      </div>
+                  groupCards(hand.cards_detail).map((group) => {
+                    const first = group.rows[0];
+                    const losers = group.rows.map((row) =>
+                      playerName(players, row.loser_user_id)
+                    );
 
-                      <button
-                        onClick={() => openEdit(card)}
-                        className="rounded-lg border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 hover:bg-white/10"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  ))
+                    return (
+                      <details key={group.card_number} className="group">
+                        <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-white/5">
+                          <div className="text-sm text-slate-300">
+                            <div>
+                              <span className="font-semibold text-white">
+                                Card {group.card_number}
+                              </span>{" "}
+                              • {money(first.amount_won)}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-400">
+                              Winner: {playerName(players, first.winner_user_id)}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-400">
+                              Losers: {losers.join(", ")}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-400">
+                              Bid: {first.final_bid_raw || "—"}
+                              {first.notes ? ` • ${first.notes}` : ""}
+                            </div>
+                          </div>
+
+                          <span className="text-xs font-semibold text-slate-400 group-open:hidden">
+                            Expand
+                          </span>
+                          <span className="hidden text-xs font-semibold text-slate-400 group-open:inline">
+                            Collapse
+                          </span>
+                        </summary>
+
+                        <div className="border-t border-white/10 px-4 py-3">
+                          <div className="mb-3 text-xs uppercase tracking-wide text-slate-500">
+                            Settlement rows in this card
+                          </div>
+
+                          <div className="space-y-2">
+                            {group.rows.map((row) => (
+                              <div
+                                key={row.row_id}
+                                className="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300"
+                              >
+                                {playerName(players, row.winner_user_id)} beat{" "}
+                                {playerName(players, row.loser_user_id)} for{" "}
+                                {money(row.amount_won)}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-4">
+                            <button
+                              onClick={() => openEditGroup(group)}
+                              className="rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                            >
+                              Edit Card
+                            </button>
+                          </div>
+                        </div>
+                      </details>
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -413,13 +501,45 @@ export default function ScoreboardClient({
         appUserId={game.scorekeeper_user_id}
       />
 
-      {editingCard && (
+      {editingCardGroup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
             <div className="mb-4 text-xl font-bold text-white">
-              Edit Card {editingCard.card_number}
+              Edit Card {editingCardGroup.card_number}
             </div>
-
+            <label className="mb-2 block text-sm text-slate-300">Winner</label>
+            <select
+              value={editWinnerUserId}
+              onChange={(e) => setEditWinnerUserId(e.target.value)}
+              className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+            >
+              <option value="">Select winner</option>
+              {players.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.display_name}
+                </option>
+              ))}
+            </select>
+            <label className="mb-2 block text-sm text-slate-300">Winner</label>
+            <select
+              value={editWinnerUserId}
+              onChange={(e) => setEditWinnerUserId(e.target.value)}
+              className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+            >
+              <option value="">Select winner</option>
+              {players
+                .filter((p) =>
+                  editingCardGroup?.rows.some(
+                    (row) =>
+                      row.winner_user_id === p.id || row.loser_user_id === p.id
+                  )
+                )
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.display_name}
+                  </option>
+                ))}
+            </select>
             <label className="mb-2 block text-sm text-slate-300">Amount</label>
             <input
               value={editAmount}
@@ -443,7 +563,7 @@ export default function ScoreboardClient({
 
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setEditingCard(null)}
+                onClick={() => setEditingCardGroup(null)}
                 className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 hover:bg-white/10"
               >
                 Cancel

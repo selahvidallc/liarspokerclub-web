@@ -48,6 +48,23 @@ async function getGame(gameId: string) {
   return res.json() as Promise<Game>;
 }
 
+async function getGamePlayers(gameId: string) {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
+  const res = await fetch(`${base}/games/${gameId}/players`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Game players fetch failed (${res.status}): ${text}`);
+  }
+
+  return res.json() as Promise<{
+    game_id: string;
+    players: { id: string; display_name: string }[];
+  }>;
+}
+
 async function getScoreboardSession(gameId: string) {
   const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
   const res = await fetch(`${base}/games/${gameId}/scoreboard/session`, {
@@ -86,10 +103,11 @@ export default async function Page({
     );
   }
 
-  const [data, progress, game] = await Promise.all([
+  const [data, progress, game, playersResp] = await Promise.all([
     getScoreboardSession(gameId),
     getHandProgress(gameId),
     getGame(gameId),
+    getGamePlayers(gameId),
   ]);
 
   return (
@@ -98,6 +116,7 @@ export default async function Page({
       data={data}
       progress={progress}
       game={game}
+      players={playersResp.players}
     />
   );
 }
