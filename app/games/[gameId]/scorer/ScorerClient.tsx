@@ -507,6 +507,7 @@ export default function ScorerClient({
           gameId={gameId}
           handComplete={true}
           appUserId={appUserId}
+          appUserRole="scorer"
         />
       </section>
     )}

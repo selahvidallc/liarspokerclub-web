@@ -2,6 +2,8 @@ import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import ChangeHandSetupClient from "./ChangeHandSetupClient"
+import type { AppRole } from "@/lib/roles";
+import { canScore } from "@/lib/roles";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
@@ -56,7 +58,7 @@ type SyncResult = {
   id: string
   email: string
   display_name: string
-  role: "player" | "scorer"
+  role: AppRole
   created: boolean
 }
 
@@ -125,7 +127,7 @@ export default async function Page({
 
   // 🔒 ACCESS CONTROL
   if (
-    appUser.role !== "scorer" ||
+    !canScore(appUser.role) ||
     appUser.id !== game.scorekeeper_user_id
   ) {
     redirect(`/games/${gameId}/scoreboard`)

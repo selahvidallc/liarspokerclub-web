@@ -1,96 +1,145 @@
-import ScoreboardClient from "./ScoreboardClient";
+import { auth, currentUser } from "@clerk/nextjs/server"
+import type { AppRole } from "@/lib/roles"
+import ScoreboardClient from "./ScoreboardClient"
 
 type HandProgress = {
-  game_id: string;
-  cards_per_hand: number;
-  current_hand_number: number;
-  cards_played_in_current_hand: number;
-  cards_remaining_in_current_hand: number;
-  hand_complete: boolean;
-};
+  game_id: string
+  cards_per_hand: number
+  current_hand_number: number
+  cards_played_in_current_hand: number
+  cards_remaining_in_current_hand: number
+  hand_complete: boolean
+}
 
 type Game = {
-  id: string;
-  scorekeeper_user_id: string;
-};
+  id: string
+  scorekeeper_user_id: string
+}
 
 type SessionScoreboardResponse = {
-  game_id: string;
-  hands: any[];
-  hand_summary: any[];
-  session_summary: any[];
-};
+  game_id: string
+  hands: any[]
+  hand_summary: any[]
+  session_summary: any[]
+}
+
+type SyncResult = {
+  id: string
+  email: string
+  display_name: string
+  role: AppRole
+  created: boolean
+}
 
 async function getHandProgress(gameId: string) {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
   const res = await fetch(`${base}/games/${gameId}/hand-progress`, {
     cache: "no-store",
-  });
+  })
 
   if (!res.ok) {
-    return null as HandProgress | null;
+    return null as HandProgress | null
   }
 
-  return res.json() as Promise<HandProgress | null>;
+  return res.json() as Promise<HandProgress | null>
 }
 
 async function getGame(gameId: string) {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
   const res = await fetch(`${base}/games/${gameId}`, {
     cache: "no-store",
-  });
+  })
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Game fetch failed (${res.status}): ${text}`);
+    const text = await res.text()
+    throw new Error(`Game fetch failed (${res.status}): ${text}`)
   }
 
-  return res.json() as Promise<Game>;
+  return res.json() as Promise<Game>
 }
 
 async function getGamePlayers(gameId: string) {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
   const res = await fetch(`${base}/games/${gameId}/players`, {
     cache: "no-store",
-  });
+  })
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Game players fetch failed (${res.status}): ${text}`);
+    const text = await res.text()
+    throw new Error(`Game players fetch failed (${res.status}): ${text}`)
   }
 
   return res.json() as Promise<{
-    game_id: string;
-    players: { id: string; display_name: string }[];
-  }>;
+    game_id: string
+    players: { id: string; display_name: string }[]
+  }>
 }
 
 async function getScoreboardSession(gameId: string) {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
   const res = await fetch(`${base}/games/${gameId}/scoreboard/session`, {
     cache: "no-store",
-  });
+  })
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Scoreboard session fetch failed (${res.status}): ${text}`);
+    const text = await res.text()
+    throw new Error(`Scoreboard session fetch failed (${res.status}): ${text}`)
   }
 
-  return res.json() as Promise<SessionScoreboardResponse>;
+  return res.json() as Promise<SessionScoreboardResponse>
+}
+
+async function syncCurrentUser(): Promise<SyncResult> {
+  const user = await currentUser()
+  const email = user?.primaryEmailAddress?.emailAddress
+  if (!email) throw new Error("No signed-in user email found")
+
+  const base =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
+
+  const res = await fetch(`${base}/users/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      display_name:
+        user?.fullName || user?.username || user?.firstName || "Player",
+    }),
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`User sync failed (${res.status}): ${text}`)
+  }
+
+  return res.json()
 }
 
 function isUuid(v: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     v
-  );
+  )
 }
 
 export default async function Page({
   params,
 }: {
-  params: Promise<{ gameId: string }>;
+  params: Promise<{ gameId: string }>
 }) {
-  const { gameId } = await params;
+  const { userId } = await auth()
+  if (!userId) {
+    return (
+      <main className="mx-auto max-w-7xl px-6 py-8">
+        <h1 className="text-4xl font-extrabold tracking-tight text-white">
+          Scoreboard
+        </h1>
+        <p className="mt-4 text-slate-300">Please sign in.</p>
+      </main>
+    )
+  }
+
+  const { gameId } = await params
 
   if (!gameId || !isUuid(gameId)) {
     return (
@@ -100,15 +149,16 @@ export default async function Page({
         </h1>
         <p className="mt-4 text-slate-300">Invalid game id.</p>
       </main>
-    );
+    )
   }
 
-  const [data, progress, game, playersResp] = await Promise.all([
+  const [appUser, data, progress, game, playersResp] = await Promise.all([
+    syncCurrentUser(),
     getScoreboardSession(gameId),
     getHandProgress(gameId),
     getGame(gameId),
     getGamePlayers(gameId),
-  ]);
+  ])
 
   return (
     <ScoreboardClient
@@ -117,6 +167,8 @@ export default async function Page({
       progress={progress}
       game={game}
       players={playersResp.players}
+      appUserId={appUser.id}
+      appUserRole={appUser.role}
     />
-  );
+  )
 }

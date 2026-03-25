@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import GameSessionActions from "../GameSessionActions";
+import { canScore } from "@/lib/roles";
 
 type HandPlayerRow = {
   player_id: string;
@@ -78,6 +79,8 @@ type Props = {
   progress: HandProgress | null;
   game: Game;
   players: PlayerOption[];
+  appUserId: string;
+  appUserRole: "player" | "scorer" | "club_admin" | "super_admin";
 };
 
 function money(v: number | string | undefined) {
@@ -124,10 +127,14 @@ export default function ScoreboardClient({
   progress,
   game,
   players,
+  appUserId,
+  appUserRole,
 }: Props) {
 
   const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
+  const canEdit =
+    canScore(appUserRole) && appUserId === game.scorekeeper_user_id;
 
   const [editingCardGroup, setEditingCardGroup] = useState<CardGroup | null>(null);
   const [saving, setSaving] = useState(false);
@@ -147,6 +154,11 @@ export default function ScoreboardClient({
 
   async function saveEdit() {
     if (!editingCardGroup) return;
+
+    if (!canEdit) {
+      alert("Not authorized");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -366,12 +378,11 @@ export default function ScoreboardClient({
                           </div>
 
                           <div className="mt-4">
-                            <button
-                              onClick={() => openEditGroup(group)}
-                              className="rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10"
-                            >
-                              Edit Card
-                            </button>
+                            {canEdit && (
+                              <button onClick={() => openEditGroup(group)}>
+                                Edit Card
+                              </button>
+                            )}
                           </div>
                         </div>
                       </details>
@@ -498,9 +509,9 @@ export default function ScoreboardClient({
       <GameSessionActions
         gameId={gameId}
         handComplete={Boolean(progress?.hand_complete)}
-        appUserId={game.scorekeeper_user_id}
+        appUserId={appUserId}
+        appUserRole={appUserRole}
       />
-
       {editingCardGroup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl">

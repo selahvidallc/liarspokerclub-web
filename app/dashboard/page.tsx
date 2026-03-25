@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
+import { canAccessAdmin, canCreateGame, canScore } from "@/lib/roles";
+import type { AppRole } from "@/lib/roles";
+
 
 type AppUser = {
   id: string;
   email: string;
   display_name: string;
-  role: "player" | "scorer";
+  role: AppRole;
   created: boolean;
 };
 
@@ -161,7 +164,7 @@ export default function DashboardPage() {
         {!notAuthorized && (
           <>
             <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {appUser?.role === "scorer" && (
+              {canCreateGame(appUser?.role) && (
                 <Link href="/games/new" className="lp-card hover:opacity-90">
                   <div className="text-lg font-bold text-white">Create Game</div>
                   <div className="mt-2 text-sm text-slate-400">
@@ -184,6 +187,21 @@ export default function DashboardPage() {
                   Review gameplay rules, options, and scoring behavior.
                 </div>
               </Link>
+              <Link href="/profile" className="lp-card hover:opacity-90">
+                <div className="text-lg font-bold text-white">My Profile</div>
+                <div className="mt-2 text-sm text-slate-400">
+                  Update your display name and review your account details.
+                </div>
+              </Link>
+
+              {canAccessAdmin(appUser?.role) && (
+                <Link href="/admin" className="lp-card hover:opacity-90">
+                  <div className="text-lg font-bold text-white">Admin</div>
+                  <div className="mt-2 text-sm text-slate-400">
+                    Manage users, roles, and club access.
+                  </div>
+                </Link>
+              )}              
             </section>
 
             <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -239,7 +257,7 @@ export default function DashboardPage() {
                     No active games
                   </div>
                   <div className="mt-1 text-sm text-slate-400">
-                    {appUser?.role === "scorer"
+                    {canCreateGame(appUser?.role)
                       ? "Start a new table or wait until a scorekeeper adds you to one."
                       : "Wait until a scorekeeper adds you to a game."}
                   </div>
@@ -250,7 +268,7 @@ export default function DashboardPage() {
                     <Link
                       key={game.id}
                       href={
-                        appUser?.role === "scorer"
+                        canScore(appUser?.role)
                           ? `/games/${game.id}`
                           : `/games/${game.id}/scoreboard`
                       }
@@ -267,7 +285,7 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <div className="text-sm font-semibold text-slate-300">
-                          {appUser?.role === "scorer"
+                          {canScore(appUser?.role)
                             ? "Open Table →"
                             : "View Scoreboard →"}
                         </div>

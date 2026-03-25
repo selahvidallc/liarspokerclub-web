@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { canScore } from "@/lib/roles"
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
@@ -11,14 +12,18 @@ export default function GameSessionActions({
   gameId,
   handComplete,
   appUserId,
+  appUserRole,
 }: {
   gameId: string
   handComplete: boolean
   appUserId: string
+  appUserRole: "player" | "scorer" | "club_admin" | "super_admin"
 }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState("")
+
+  const canControl = canScore(appUserRole)
 
   async function finalizeSession() {
     const ok = window.confirm(
@@ -81,33 +86,34 @@ export default function GameSessionActions({
       )}
 
       <div className="flex flex-wrap gap-3">
-        {handComplete ? (
-          <>
+        {canControl &&
+          (handComplete ? (
+            <>
+              <button
+                onClick={playSameHandSamePlayers}
+                disabled={busy}
+                className="lp-button"
+              >
+                Play Same Hand Type / Same Players
+              </button>
+
+              <button
+                onClick={changePlayersOrHandType}
+                disabled={busy}
+                className="lp-button-secondary"
+              >
+                Change Players / Hand Type
+              </button>
+            </>
+          ) : (
             <button
-              onClick={playSameHandSamePlayers}
+              onClick={() => router.push(`/games/${gameId}/scorer`)}
               disabled={busy}
               className="lp-button"
             >
-              Play Same Hand Type / Same Players
+              Scorer Sheet
             </button>
-
-            <button
-              onClick={changePlayersOrHandType}
-              disabled={busy}
-              className="lp-button-secondary"
-            >
-              Change Players / Hand Type
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={() => router.push(`/games/${gameId}/scorer`)}
-            disabled={busy}
-            className="lp-button"
-          >
-            Scorer Sheet
-          </button>
-        )}
+          ))}
 
         <Link
           href={`/games/${gameId}/scoreboard`}
@@ -123,13 +129,15 @@ export default function GameSessionActions({
           Back to Table
         </Link>
 
-        <button
-          onClick={finalizeSession}
-          disabled={busy}
-          className="lp-button-secondary"
-        >
-          {busy ? "Ending Session..." : "End Session"}
-        </button>
+        {canControl && (
+          <button
+            onClick={finalizeSession}
+            disabled={busy}
+            className="lp-button-secondary"
+          >
+            {busy ? "Ending Session..." : "End Session"}
+          </button>
+        )}
       </div>
     </section>
   )

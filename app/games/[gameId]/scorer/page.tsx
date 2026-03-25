@@ -1,6 +1,8 @@
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import ScorerClient from "./ScorerClient"
+import type { AppRole } from "@/lib/roles";
+import { canScore } from "@/lib/roles";
 
 type Player = {
   id: string
@@ -41,7 +43,7 @@ type SyncResult = {
   id: string
   email: string
   display_name: string
-  role: "player" | "scorer"
+  role: AppRole
   created: boolean
 }
 
@@ -131,10 +133,12 @@ export default async function Page({
     syncCurrentUser(),
   ])
 
-  if (appUser.role !== "scorer" || appUser.id !== game.scorekeeper_user_id) {
+  if (
+    !canScore(appUser.role) ||
+    appUser.id !== game.scorekeeper_user_id
+  ) {
     redirect(`/games/${gameId}/scoreboard`)
   }
-
   const activePlayers = playerData.players.filter((p) => p.is_active !== false)
 
   return (

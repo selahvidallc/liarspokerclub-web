@@ -1,8 +1,10 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
-
+import { auth, currentUser } from "@clerk/nextjs/server"
+import type { AppRole } from "@/lib/roles"
 import GameSessionActions from "./GameSessionActions"
 import DeleteGameButton from "./DeleteGameButton"
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
 
 type Game = {
   id: string
@@ -35,6 +37,43 @@ type HandProgress = {
   hand_complete: boolean
 }
 
+type SyncResult = {
+  id: string
+  email: string
+  display_name: string
+  role: AppRole
+  created: boolean
+}
+
+type PlayersResponse = {
+  game_id: string
+  players: Player[]
+}
+
+async function syncCurrentUser(): Promise<SyncResult> {
+  const user = await currentUser()
+  const email = user?.primaryEmailAddress?.emailAddress
+  if (!email) throw new Error("No signed-in user email found")
+
+  const res = await fetch(`${API_BASE}/users/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      display_name:
+        user?.fullName || user?.username || user?.firstName || "Player",
+    }),
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`User sync failed (${res.status}): ${text}`)
+  }
+
+  return res.json()
+}
+
 async function getGame(gameId: string): Promise<Game> {
   const res = await fetch(`${API_BASE}/games/${gameId}`, { cache: "no-store" })
   if (!res.ok) {
@@ -42,11 +81,6 @@ async function getGame(gameId: string): Promise<Game> {
     throw new Error(`Game fetch failed (${res.status}): ${text}`)
   }
   return res.json()
-}
-
-type PlayersResponse = {
-  game_id: string
-  players: Player[]
 }
 
 async function getPlayers(gameId: string): Promise<Player[]> {
@@ -82,9 +116,22 @@ export default async function GameTablePage({
 }: {
   params: Promise<{ gameId: string }>
 }) {
+  const { userId } = await auth()
+  if (!userId) {
+    return (
+      <main className="mx-auto max-w-7xl px-6 py-8">
+        <h1 className="text-4xl font-extrabold tracking-tight text-white">
+          Table
+        </h1>
+        <p className="mt-4 text-slate-300">Please sign in.</p>
+      </main>
+    )
+  }
+
   const { gameId } = await params
 
-  const [game, players, progress] = await Promise.all([
+  const [appUser, game, players, progress] = await Promise.all([
+    syncCurrentUser(),
     getGame(gameId),
     getPlayers(gameId),
     getHandProgress(gameId),
@@ -108,6 +155,7 @@ export default async function GameTablePage({
               {game.id}
             </code>
           </div>
+
           {game.status !== "FINALIZED" && (
             <div className="mt-4">
               <DeleteGameButton
@@ -117,7 +165,6 @@ export default async function GameTablePage({
             </div>
           )}
         </div>
-
       </div>
 
       <section className="mb-6 grid gap-6 lg:grid-cols-2">
@@ -298,7 +345,8 @@ export default async function GameTablePage({
       <GameSessionActions
         gameId={gameId}
         handComplete={Boolean(progress?.hand_complete)}
-        appUserId={game.scorekeeper_user_id}
+        appUserId={appUser.id}
+        appUserRole={appUser.role}
       />
     </main>
   )

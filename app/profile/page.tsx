@@ -1,4 +1,14 @@
 import { auth } from "@clerk/nextjs/server"
+import type { AppRole } from "@/lib/roles";
+
+type AppUser = {
+  id: string;
+  email: string;
+  display_name: string;
+  role: AppRole;
+  created: boolean;
+};
+
 
 export default function ProfilePage() {
   return (
