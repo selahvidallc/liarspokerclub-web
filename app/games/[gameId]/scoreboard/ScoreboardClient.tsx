@@ -1,0 +1,464 @@
+"use client";
+
+import { useState } from "react";
+import GameSessionActions from "../GameSessionActions";
+
+type HandPlayerRow = {
+  player_id: string;
+  display_name: string;
+  cards: Record<string, number>;
+  hand_total: number;
+};
+
+type CardDetail = {
+  row_id: string;
+  card_number: number;
+  winner_user_id: string | null;
+  loser_user_id: string | null;
+  amount_won: number;
+  final_bid_raw: string | null;
+  notes: string | null;
+};
+
+type HandBoard = {
+  hand_number: number;
+  cards: string[];
+  players: HandPlayerRow[];
+  card_totals: Record<string, number>;
+  hand_total_sum: number;
+  cards_detail: CardDetail[];
+};
+
+type HandSummaryRow = {
+  hand_number: number;
+  totals: Record<string, number>;
+};
+
+type SessionSummaryPlayer = {
+  player_id: string;
+  display_name: string;
+  session_total: number;
+};
+
+type SessionScoreboardResponse = {
+  game_id: string;
+  hands: HandBoard[];
+  hand_summary: HandSummaryRow[];
+  session_summary: SessionSummaryPlayer[];
+};
+
+type HandProgress = {
+  game_id: string;
+  cards_per_hand: number;
+  current_hand_number: number;
+  cards_played_in_current_hand: number;
+  cards_remaining_in_current_hand: number;
+  hand_complete: boolean;
+};
+
+type Game = {
+  id: string;
+  scorekeeper_user_id: string;
+};
+
+type Props = {
+  gameId: string;
+  data: SessionScoreboardResponse;
+  progress: HandProgress | null;
+  game: Game;
+};
+
+function money(v: number | string | undefined) {
+  if (v === undefined) return "";
+  const n = typeof v === "string" ? Number(v) : v;
+  if (!Number.isFinite(n)) return String(v);
+  return n.toLocaleString(undefined, { style: "currency", currency: "USD" });
+}
+
+function amountClass(v: number) {
+  if (v > 0) return "money-positive";
+  if (v < 0) return "money-negative";
+  return "text-slate-300";
+}
+
+export default function ScoreboardClient({
+  gameId,
+  data,
+  progress,
+  game,
+}: Props) {
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
+
+  const [editingCard, setEditingCard] = useState<CardDetail | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [editAmount, setEditAmount] = useState("");
+  const [editBid, setEditBid] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+
+  function openEdit(card: CardDetail) {
+    setEditingCard(card);
+    setEditAmount(String(card.amount_won ?? ""));
+    setEditBid(card.final_bid_raw ?? "");
+    setEditNotes(card.notes ?? "");
+  }
+
+  async function saveEdit() {
+    if (!editingCard) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/games/${gameId}/hands/${editingCard.row_id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount_won: editAmount === "" ? null : Number(editAmount),
+            final_bid_raw: editBid,
+            notes: editNotes,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to update card");
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update card");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mb-8">
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+          Scoreboard
+        </div>
+
+        <h1 className="text-4xl font-extrabold tracking-tight text-white">
+          Session Scoreboard
+        </h1>
+
+        <div className="mt-2 text-sm text-slate-400">
+          Game:{" "}
+          <code className="rounded-lg bg-white/5 px-2 py-1 text-slate-200">
+            {data.game_id}
+          </code>
+        </div>
+      </div>
+
+      <div className="grid gap-6">
+        {data.hands.map((hand) => (
+          <section key={hand.hand_number} className="lp-card">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-bold text-white">
+                  Hand {hand.hand_number}
+                </h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Player-by-player totals for each card and the hand total.
+                </p>
+              </div>
+
+              <span className="lp-badge">
+                {hand.players.length} Player{hand.players.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-white/10">
+              <table className="min-w-[560px] table-fixed">
+                <thead>
+                  <tr className="bg-white/5">
+                    <th className="w-[120px] px-2 py-3 text-left">Player</th>
+                    {hand.cards.map((card) => (
+                      <th key={card} className="w-[82px] px-2 py-3 text-right">
+                        {card}
+                      </th>
+                    ))}
+                    <th className="w-[90px] px-2 py-3 text-right">Hand Total</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {hand.players.map((p) => (
+                    <tr key={p.player_id}>
+                      <td className="w-[120px] max-w-[120px] overflow-hidden px-2 py-3 align-top">
+                        <div className="truncate font-semibold leading-tight text-white">
+                          {p.display_name}
+                        </div>
+                        <div className="truncate text-[11px] leading-tight text-slate-500">
+                          {p.player_id}
+                        </div>
+                      </td>
+
+                      {hand.cards.map((card) => {
+                        const v = Number(p.cards[card] ?? 0);
+                        return (
+                          <td
+                            key={card}
+                            className={`w-[82px] px-2 py-3 text-right whitespace-nowrap ${amountClass(
+                              v
+                            )}`}
+                          >
+                            {v === 0 ? "-" : money(v)}
+                          </td>
+                        );
+                      })}
+
+                      <td
+                        className={`w-[90px] px-2 py-3 text-right whitespace-nowrap font-bold ${amountClass(
+                          Number(p.hand_total)
+                        )}`}
+                      >
+                        {money(p.hand_total)}
+                      </td>
+                    </tr>
+                  ))}
+
+                  <tr className="bg-white/5">
+                    <td className="w-[120px] max-w-[120px] overflow-hidden px-2 py-3 font-extrabold text-white">
+                      Hand Total
+                    </td>
+
+                    {hand.cards.map((card) => {
+                      const total = Number(hand.card_totals[card] ?? 0);
+                      return (
+                        <td
+                          key={card}
+                          className={`w-[82px] px-2 py-3 text-right whitespace-nowrap font-extrabold ${amountClass(
+                            total
+                          )}`}
+                        >
+                          {money(total)}
+                        </td>
+                      );
+                    })}
+
+                    <td
+                      className={`w-[90px] px-2 py-3 text-right whitespace-nowrap font-extrabold ${amountClass(
+                        Number(hand.hand_total_sum)
+                      )}`}
+                    >
+                      {money(hand.hand_total_sum)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10">
+              <div className="border-b border-white/10 px-4 py-3 text-sm font-semibold text-white">
+                Card Details
+              </div>
+
+              <div className="divide-y divide-white/10">
+                {hand.cards_detail.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-slate-400">
+                    No card detail rows found.
+                  </div>
+                ) : (
+                  hand.cards_detail.map((card) => (
+                    <div
+                      key={card.row_id}
+                      className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                    >
+                      <div className="text-sm text-slate-300">
+                        <div>
+                          <span className="font-semibold text-white">
+                            Card {card.card_number}
+                          </span>{" "}
+                          • {money(card.amount_won)}
+                        </div>
+                        <div className="mt-1 text-xs text-slate-400">
+                          Bid: {card.final_bid_raw || "—"}
+                          {card.notes ? ` • ${card.notes}` : ""}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => openEdit(card)}
+                        className="rounded-lg border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </section>
+        ))}
+
+        <section className="lp-card">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                Session Summary (Cum Cum)
+              </h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Rollup of every hand into cumulative session totals.
+              </p>
+            </div>
+
+            <span className="lp-badge">
+              {data.hand_summary.length} Hand{data.hand_summary.length === 1 ? "" : "s"}
+            </span>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <table className="min-w-[500px] table-fixed">
+              <thead>
+                <tr className="bg-white/5">
+                  <th className="w-[120px] px-2 py-3 text-left">Player</th>
+                  {data.hand_summary.map((h) => (
+                    <th key={h.hand_number} className="w-[82px] px-2 py-3 text-right">
+                      Hand {h.hand_number}
+                    </th>
+                  ))}
+                  <th className="w-[96px] px-2 py-3 text-right">Session Total</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {data.session_summary.map((p) => {
+                  const handAmounts = data.hand_summary.map((h) => ({
+                    hand_number: h.hand_number,
+                    value: Number(h.totals[p.player_id] ?? 0),
+                  }));
+
+                  return (
+                    <tr key={p.player_id}>
+                      <td className="w-[120px] max-w-[120px] overflow-hidden px-2 py-3">
+                        <div className="truncate font-semibold leading-tight text-white">
+                          {p.display_name}
+                        </div>
+                      </td>
+
+                      {handAmounts.map((h) => (
+                        <td
+                          key={h.hand_number}
+                          className={`w-[82px] px-2 py-3 text-right whitespace-nowrap ${amountClass(
+                            h.value
+                          )}`}
+                        >
+                          {h.value === 0 ? "-" : money(h.value)}
+                        </td>
+                      ))}
+
+                      <td
+                        className={`w-[96px] px-2 py-3 text-right whitespace-nowrap font-bold ${amountClass(
+                          Number(p.session_total)
+                        )}`}
+                      >
+                        {money(p.session_total)}
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                <tr className="bg-white/5">
+                  <td className="w-[120px] max-w-[120px] overflow-hidden px-2 py-3 font-extrabold text-white">
+                    Session Total
+                  </td>
+
+                  {data.hand_summary.map((h) => {
+                    const total = Object.values(h.totals).reduce(
+                      (sum, v) => sum + Number(v || 0),
+                      0
+                    );
+
+                    return (
+                      <td
+                        key={h.hand_number}
+                        className={`w-[82px] px-2 py-3 text-right whitespace-nowrap font-extrabold ${amountClass(
+                          total
+                        )}`}
+                      >
+                        {money(total)}
+                      </td>
+                    );
+                  })}
+
+                  <td
+                    className={`w-[96px] px-2 py-3 text-right whitespace-nowrap font-extrabold ${amountClass(
+                      data.session_summary.reduce(
+                        (sum, p) => sum + Number(p.session_total || 0),
+                        0
+                      )
+                    )}`}
+                  >
+                    {money(
+                      data.session_summary.reduce(
+                        (sum, p) => sum + Number(p.session_total || 0),
+                        0
+                      )
+                    )}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <GameSessionActions
+        gameId={gameId}
+        handComplete={Boolean(progress?.hand_complete)}
+        appUserId={game.scorekeeper_user_id}
+      />
+
+      {editingCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
+            <div className="mb-4 text-xl font-bold text-white">
+              Edit Card {editingCard.card_number}
+            </div>
+
+            <label className="mb-2 block text-sm text-slate-300">Amount</label>
+            <input
+              value={editAmount}
+              onChange={(e) => setEditAmount(e.target.value)}
+              className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+            />
+
+            <label className="mb-2 block text-sm text-slate-300">Final Bid</label>
+            <input
+              value={editBid}
+              onChange={(e) => setEditBid(e.target.value)}
+              className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+            />
+
+            <label className="mb-2 block text-sm text-slate-300">Notes</label>
+            <textarea
+              value={editNotes}
+              onChange={(e) => setEditNotes(e.target.value)}
+              className="mb-4 min-h-[100px] w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setEditingCard(null)}
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={saving}
+                className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
