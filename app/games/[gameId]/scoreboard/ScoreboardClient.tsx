@@ -514,19 +514,6 @@ export default function ScoreboardClient({
               className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
             >
               <option value="">Select winner</option>
-              {players.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.display_name}
-                </option>
-              ))}
-            </select>
-            <label className="mb-2 block text-sm text-slate-300">Winner</label>
-            <select
-              value={editWinnerUserId}
-              onChange={(e) => setEditWinnerUserId(e.target.value)}
-              className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
-            >
-              <option value="">Select winner</option>
               {players
                 .filter((p) =>
                   editingCardGroup?.rows.some(
