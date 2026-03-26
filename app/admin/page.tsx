@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import type { AppRole } from "@/lib/roles"
 import { canAccessAdmin } from "@/lib/roles"
+import Link from "next/link"
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610"
@@ -140,16 +141,34 @@ export default function AdminPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
-      <div className="mb-8">
-        <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-          Admin
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+            Admin
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-white">
+            User & Role Management
+          </h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Manage invited users, display names, and access roles.
+          </p>
         </div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-white">
-          User & Role Management
-        </h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Manage invited users, display names, and access roles.
-        </p>
+
+        <div className="flex flex-wrap gap-3">
+          <a
+            href="/dashboard"
+            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          >
+            Back to Dashboard
+          </a>
+
+          <Link
+            href="/profile"
+            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          >
+            My Profile
+          </Link>
+        </div>
       </div>
 
       {error && (
