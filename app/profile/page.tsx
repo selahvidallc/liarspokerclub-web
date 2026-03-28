@@ -16,15 +16,25 @@ type AppUser = {
   created: boolean
 }
 
+type ThemeOption = "dark" | "light"
+
 export default function ProfilePage() {
   const { user, isLoaded } = useUser()
 
   const [appUser, setAppUser] = useState<AppUser | null>(null)
   const [displayName, setDisplayName] = useState("")
+  const [theme, setTheme] = useState<ThemeOption>("dark")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [msg, setMsg] = useState("")
+
+  useEffect(() => {
+    const savedTheme =
+      (localStorage.getItem("lp-theme") as ThemeOption | null) || "dark"
+    setTheme(savedTheme)
+    document.documentElement.setAttribute("data-theme", savedTheme)
+  }, [])
 
   useEffect(() => {
     if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return
@@ -67,6 +77,12 @@ export default function ProfilePage() {
 
     run()
   }, [isLoaded, user])
+
+  function changeTheme(nextTheme: ThemeOption) {
+    setTheme(nextTheme)
+    localStorage.setItem("lp-theme", nextTheme)
+    document.documentElement.setAttribute("data-theme", nextTheme)
+  }
 
   async function saveProfile() {
     if (!appUser) return
@@ -122,7 +138,7 @@ export default function ProfilePage() {
           </div>
           <h1 className="text-3xl font-semibold text-white">My Profile</h1>
           <p className="mt-2 text-slate-300">
-            Update your display name and review your account details.
+            Update your display name and choose the display style you prefer.
           </p>
         </div>
 
@@ -171,10 +187,27 @@ export default function ProfilePage() {
                 />
               </div>
 
+              <div className="lp-interactive-panel">
+                <label className="lp-form-label">Display Theme</label>
+                <select
+                  className="lp-select-strong"
+                  value={theme}
+                  onChange={(e) => changeTheme(e.target.value as ThemeOption)}
+                >
+                  <option value="dark">Dark Mode</option>
+                  <option value="light">Light Mode</option>
+                </select>
+
+                <p className="mt-3 text-sm text-slate-400">
+                  Light Mode is designed to be softer and easier to read for users
+                  who prefer a brighter interface.
+                </p>
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="lp-card-soft">
                   <div className="text-sm text-slate-400">Email</div>
-                  <div className="mt-1 font-semibold text-white break-all">
+                  <div className="mt-1 break-all font-semibold text-white">
                     {appUser?.email || "—"}
                   </div>
                 </div>
