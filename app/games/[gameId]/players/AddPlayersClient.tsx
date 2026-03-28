@@ -15,6 +15,7 @@ type User = {
 type Player = {
   id: string
   display_name: string
+  is_active?: boolean
 }
 
 export default function AddPlayersClient({
@@ -40,19 +41,28 @@ export default function AddPlayersClient({
   const [newDisplayName, setNewDisplayName] = useState("")
   const [newEmail, setNewEmail] = useState("")
   const [creatingPlayer, setCreatingPlayer] = useState(false)
-  const [grantLoginAccess, setGrantLoginAccess] = useState(true)
 
-  const currentIds = useMemo(
-    () => new Set(currentPlayers.map((p) => p.id)),
+  const activePlayers = useMemo(
+    () => currentPlayers.filter((p) => p.is_active !== false),
     [currentPlayers]
   )
 
-  const availableUsers = useMemo(
-    () => users.filter((u) => !currentIds.has(u.id)),
-    [users, currentIds]
+  const inactivePlayers = useMemo(
+    () => currentPlayers.filter((p) => p.is_active === false),
+    [currentPlayers]
   )
 
-  async function addPlayer() {
+  const activeIds = useMemo(
+    () => new Set(activePlayers.map((p) => p.id)),
+    [activePlayers]
+  )
+
+  const availableUsers = useMemo(
+    () => users.filter((u) => !activeIds.has(u.id)),
+    [users, activeIds]
+  )
+
+  async function addOrReactivatePlayer(userId: string) {
     setMsg("")
 
     if (!isScorekeeper) {
@@ -60,15 +70,15 @@ export default function AddPlayersClient({
       return
     }
 
-    if (!selectedUserId) {
-      setMsg("Pick a user to add.")
+    if (!userId) {
+      setMsg("Pick a user first.")
       return
     }
 
     setWorking(true)
     try {
       const res = await fetch(
-        `${API_BASE}/games/${gameId}/players?user_id=${selectedUserId}`,
+        `${API_BASE}/games/${gameId}/players?user_id=${userId}`,
         {
           method: "POST",
           headers: {
@@ -132,7 +142,6 @@ export default function AddPlayersClient({
     setMsg("")
     setNewDisplayName("")
     setNewEmail("")
-    setGrantLoginAccess(true)
     setShowCreateModal(true)
   }
 
@@ -162,7 +171,7 @@ export default function AddPlayersClient({
         body: JSON.stringify({
           display_name: newDisplayName.trim(),
           email: newEmail.trim(),
-          grant_login_access: grantLoginAccess,
+          role: "player",
         }),
       })
 
@@ -207,20 +216,29 @@ export default function AddPlayersClient({
   return (
     <>
       <main className="mx-auto max-w-5xl px-6 py-8">
-        <div className="mb-8">
-          <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-            Game Roster
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+              Game Roster
+            </div>
+
+            <h1 className="text-4xl font-extrabold tracking-tight text-white">
+              Manage Players
+            </h1>
+
+            <p className="mt-2 text-sm text-slate-400">
+              {isScorekeeper
+                ? "Add existing players, remove players from this table, or create a new player and add them instantly."
+                : "You can view the roster for this game, but only the scorekeeper can make changes."}
+            </p>
           </div>
 
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">
-            Manage Players
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-400">
-            {isScorekeeper
-              ? "Add existing players, remove players from this table, or create a new player and add them instantly."
-              : "You can view the roster for this game, but only the scorekeeper can make changes."}
-          </p>
+          <a
+            href="/dashboard"
+            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          >
+            Dashboard
+          </a>
         </div>
 
         {msg && (
@@ -239,24 +257,24 @@ export default function AddPlayersClient({
           <section className="lp-card">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-bold text-white">Current Roster</h2>
+                <h2 className="text-2xl font-bold text-white">Active Players</h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  Players already assigned to this game.
+                  These players are currently active in this game.
                 </p>
               </div>
 
               <span className="lp-badge">
-                {currentPlayers.length} Player{currentPlayers.length === 1 ? "" : "s"}
+                {activePlayers.length} Player{activePlayers.length === 1 ? "" : "s"}
               </span>
             </div>
 
-            {currentPlayers.length === 0 ? (
+            {activePlayers.length === 0 ? (
               <div className="lp-card-soft">
-                <p className="m-0 text-slate-300">No players added yet.</p>
+                <p className="m-0 text-slate-300">No active players.</p>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {currentPlayers.map((p) => (
+                {activePlayers.map((p) => (
                   <div key={p.id} className="lp-card-soft">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -284,12 +302,60 @@ export default function AddPlayersClient({
             )}
           </section>
 
+          <section className="lp-card">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Inactive Players</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  These players remain in game history and can be reactivated.
+                </p>
+              </div>
+
+              <span className="lp-badge-neutral inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
+                {inactivePlayers.length} Inactive
+              </span>
+            </div>
+
+            {inactivePlayers.length === 0 ? (
+              <div className="lp-card-soft">
+                <p className="m-0 text-slate-300">No inactive players.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {inactivePlayers.map((p) => (
+                  <div key={p.id} className="lp-card-soft opacity-85">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-lg font-bold text-white">
+                          {p.display_name}
+                        </div>
+                        <div className="mt-1 break-all text-sm text-slate-400">
+                          {p.id}
+                        </div>
+                      </div>
+
+                      {isScorekeeper && (
+                        <button
+                          onClick={() => addOrReactivatePlayer(p.id)}
+                          disabled={working || creatingPlayer}
+                          className="lp-button shrink-0"
+                        >
+                          Reactivate
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           {isScorekeeper && (
             <section className="lp-card">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold text-white">Add Existing Player</h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  Select from players not already on this table.
+                  Select from users not already active in this game.
                 </p>
               </div>
 
@@ -308,7 +374,7 @@ export default function AddPlayersClient({
                 </select>
 
                 <button
-                  onClick={addPlayer}
+                  onClick={() => addOrReactivatePlayer(selectedUserId)}
                   disabled={working || creatingPlayer}
                   className="lp-button"
                 >
@@ -409,23 +475,6 @@ export default function AddPlayersClient({
                   disabled={creatingPlayer}
                   placeholder="john@example.com"
                 />
-              </div>
-
-              <div className="lp-card-soft">
-                <label className="flex items-center gap-3 text-sm font-semibold text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={grantLoginAccess}
-                    onChange={(e) => setGrantLoginAccess(e.target.checked)}
-                    disabled={creatingPlayer}
-                  />
-                  This player should be able to log in later
-                </label>
-
-                <p className="mt-2 text-sm text-slate-400">
-                  Leave this checked for real players who may want access to the site.
-                  Uncheck it for temporary or roster-only players.
-                </p>
               </div>
 
               <div className="flex flex-wrap justify-end gap-3 pt-2">

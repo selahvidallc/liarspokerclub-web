@@ -10,6 +10,7 @@ type User = {
 type Player = {
   id: string
   display_name: string
+  is_active?: boolean
 }
 
 type Game = {

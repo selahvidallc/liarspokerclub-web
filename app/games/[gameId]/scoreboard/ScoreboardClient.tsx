@@ -138,18 +138,34 @@ export default function ScoreboardClient({
 
   const [editingCardGroup, setEditingCardGroup] = useState<CardGroup | null>(null);
   const [saving, setSaving] = useState(false);
-  const [editWinnerUserId, setEditWinnerUserId] = useState("");
+  const [editBidOwnerUserId, setEditBidOwnerUserId] = useState("");
+  const [editBidOwnerWon, setEditBidOwnerWon] = useState(true);
   const [editAmount, setEditAmount] = useState("");
   const [editBid, setEditBid] = useState("");
   const [editNotes, setEditNotes] = useState("");
 
   function openEditGroup(group: CardGroup) {
-    const first = group.rows[0];
-    setEditingCardGroup(group);
-    setEditWinnerUserId(first.winner_user_id ?? "");
-    setEditAmount(String(first.amount_won ?? ""));
-    setEditBid(first.final_bid_raw ?? "");
-    setEditNotes(first.notes ?? "");
+    const first = group.rows[0]
+    const uniqueWinners = Array.from(new Set(group.rows.map((r) => r.winner_user_id).filter(Boolean)))
+    const uniqueLosers = Array.from(new Set(group.rows.map((r) => r.loser_user_id).filter(Boolean)))
+
+    let bidOwnerUserId = ""
+    let bidOwnerWon = true
+
+    if (uniqueWinners.length === 1) {
+      bidOwnerUserId = String(uniqueWinners[0] || "")
+      bidOwnerWon = true
+    } else if (uniqueLosers.length === 1) {
+      bidOwnerUserId = String(uniqueLosers[0] || "")
+      bidOwnerWon = false
+    }
+
+    setEditingCardGroup(group)
+    setEditBidOwnerUserId(bidOwnerUserId)
+    setEditBidOwnerWon(bidOwnerWon)
+    setEditAmount(String(first.amount_won ?? ""))
+    setEditBid(first.final_bid_raw ?? "")
+    setEditNotes(first.notes ?? "")
   }
 
   async function saveEdit() {
@@ -168,13 +184,15 @@ export default function ScoreboardClient({
         body: JSON.stringify({
           hand_number: data.hands.find((h) =>
             groupCards(h.cards_detail).some(
-              (g) => g.card_number === editingCardGroup.card_number &&
+              (g) =>
+                g.card_number === editingCardGroup.card_number &&
                 JSON.stringify(g.rows.map((r) => r.row_id).sort()) ===
-                JSON.stringify(editingCardGroup.rows.map((r) => r.row_id).sort())
+                  JSON.stringify(editingCardGroup.rows.map((r) => r.row_id).sort())
             )
           )?.hand_number,
           card_number: editingCardGroup.card_number,
-          winner_user_id: editWinnerUserId,
+          bid_owner_user_id: editBidOwnerUserId,
+          bid_owner_won: editBidOwnerWon,
           amount_won: editAmount === "" ? 0 : Number(editAmount),
           final_bid_raw: editBid,
           notes: editNotes,
@@ -340,10 +358,10 @@ export default function ScoreboardClient({
                               • {money(first.amount_won)}
                             </div>
                             <div className="mt-1 text-xs text-slate-400">
-                              Winner: {playerName(players, first.winner_user_id)}
+                              Bid Owner: {playerName(players, first.winner_user_id)}
                             </div>
                             <div className="mt-1 text-xs text-slate-400">
-                              Losers: {losers.join(", ")}
+                              Opponents: {losers.join(", ")}
                             </div>
                             <div className="mt-1 text-xs text-slate-400">
                               Bid: {first.final_bid_raw || "—"}
@@ -518,18 +536,17 @@ export default function ScoreboardClient({
             <div className="mb-4 text-xl font-bold text-white">
               Edit Card {editingCardGroup.card_number}
             </div>
-            <label className="mb-2 block text-sm text-slate-300">Winner</label>
+            <label className="mb-2 block text-sm text-slate-300">Bid Owner</label>
             <select
-              value={editWinnerUserId}
-              onChange={(e) => setEditWinnerUserId(e.target.value)}
+              value={editBidOwnerUserId}
+              onChange={(e) => setEditBidOwnerUserId(e.target.value)}
               className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
             >
-              <option value="">Select winner</option>
+              <option value="">Select bid owner</option>
               {players
                 .filter((p) =>
                   editingCardGroup?.rows.some(
-                    (row) =>
-                      row.winner_user_id === p.id || row.loser_user_id === p.id
+                    (row) => row.winner_user_id === p.id || row.loser_user_id === p.id
                   )
                 )
                 .map((p) => (
@@ -538,6 +555,31 @@ export default function ScoreboardClient({
                   </option>
                 ))}
             </select>
+
+            <label className="mb-2 block text-sm text-slate-300">Outcome</label>
+            <div className="mb-4 flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-slate-200">
+                <input
+                  type="radio"
+                  name="editOutcome"
+                  checked={editBidOwnerWon === true}
+                  onChange={() => setEditBidOwnerWon(true)}
+                  className="w-auto"
+                />
+                Bid Owner WON
+              </label>
+
+              <label className="flex items-center gap-2 text-slate-200">
+                <input
+                  type="radio"
+                  name="editOutcome"
+                  checked={editBidOwnerWon === false}
+                  onChange={() => setEditBidOwnerWon(false)}
+                  className="w-auto"
+                />
+                Bid Owner LOST
+              </label>
+            </div>
             <label className="mb-2 block text-sm text-slate-300">Amount</label>
             <input
               value={editAmount}

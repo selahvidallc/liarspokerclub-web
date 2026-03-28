@@ -266,6 +266,12 @@ export default async function Page({ searchParams }: InfoPageProps) {
                 >
                   Back to Table
                 </a>
+                <a
+                  href="/dashboard"
+                  className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+                >
+                  Dashboard
+                </a>
               </>
             )}
           </div>

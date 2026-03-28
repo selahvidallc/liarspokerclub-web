@@ -146,7 +146,7 @@ export default async function GameTablePage({
           </div>
 
           <h1 className="text-4xl font-extrabold tracking-tight text-white">
-            {game.title || "Liar's Poker Game"}
+            {game.title || "Liar's Poker Club Game"}
           </h1>
 
           <div className="mt-2 text-sm text-slate-400">

@@ -42,6 +42,10 @@ export default function AdminPage() {
   const [savingId, setSavingId] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [msg, setMsg] = useState("")
+  const [newDisplayName, setNewDisplayName] = useState("")
+  const [newEmail, setNewEmail] = useState("")
+  const [newRole, setNewRole] = useState<AppRole>("player")
+  const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return
@@ -138,7 +142,48 @@ export default function AdminPage() {
       setSavingId(null)
     }
   }
+  async function createUser() {
+    try {
+      setCreating(true)
+      setError("")
+      setMsg("")
 
+      if (!newDisplayName.trim() || !newEmail.trim()) {
+        throw new Error("Display name and email are required")
+      }
+
+      const res = await fetch(`${API_BASE}/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display_name: newDisplayName.trim(),
+          email: newEmail.trim(),
+          role: newRole,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data?.detail || "Failed to create user")
+      }
+
+      setUsers((prev) =>
+        [...prev, data].sort((a, b) =>
+          a.display_name.localeCompare(b.display_name)
+        )
+      )
+
+      setNewDisplayName("")
+      setNewEmail("")
+      setNewRole("player")
+      setMsg(`Created ${data.display_name}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error")
+    } finally {
+      setCreating(false)
+    }
+  }
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -182,7 +227,52 @@ export default function AdminPage() {
           {msg}
         </div>
       )}
+      <section className="lp-card mb-6">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-white">Create User</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Add an invited user who can later sign in and be assigned to games.
+          </p>
+        </div>
 
+        <div className="grid gap-4 md:grid-cols-3">
+          <input
+            value={newDisplayName}
+            onChange={(e) => setNewDisplayName(e.target.value)}
+            placeholder="Display Name"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+          />
+
+          <input
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="Email"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+          />
+
+          <select
+            value={newRole}
+            onChange={(e) => setNewRole(e.target.value as AppRole)}
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+          >
+            {ROLE_OPTIONS.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <button
+            onClick={createUser}
+            disabled={creating}
+            className="lp-button"
+          >
+            {creating ? "Creating..." : "Create User"}
+          </button>
+        </div>
+      </section>
       <section className="lp-card">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>

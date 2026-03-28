@@ -129,6 +129,13 @@ export default function GameSessionActions({
           Back to Table
         </Link>
 
+        <Link
+          href="/dashboard"
+          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+        >
+          Dashboard
+        </Link>
+
         {canControl && (
           <button
             onClick={finalizeSession}

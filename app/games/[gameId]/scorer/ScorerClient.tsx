@@ -146,7 +146,23 @@ export default function ScorerClient({
     }
 
     const finalBidRaw = `${parsedCount}x${faceToInternal(face)}`
+    const ownerName =
+      players.find((p) => p.id === bidOwner)?.display_name || "Unknown"
 
+    const confirmationLines = [
+      `Bid Owner: ${ownerName}`,
+      `Outcome: ${bidOwnerWon ? "Bid Owner WON" : "Bid Owner LOST"}`,
+      `Bid: ${parsedCount}x${face}`,
+      `Dollar Amount: ${money(resolvedBet)}`,
+    ]
+
+    const ok = window.confirm(
+      `${confirmationLines.join("\n")}\n\nIs this correct?`
+    )
+
+    if (!ok) {
+      return
+    }
     const payload = {
       hand_number: effectiveHandNumber,
       bid_owner_user_id: bidOwner,
