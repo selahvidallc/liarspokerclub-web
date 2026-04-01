@@ -52,11 +52,21 @@ type SessionSummaryPlayer = {
   session_total: number;
 };
 
+type CardRoleRow = {
+  hand_number: number;
+  card_number: number;
+  bid_owner_user_id: string | null;
+  bid_owner_won: boolean | null;
+  amount_won: number;
+  participant_ids: string[];
+};
+
 type SessionScoreboardResponse = {
   game_id: string;
   hands: HandBoard[];
   hand_summary: HandSummaryRow[];
   session_summary: SessionSummaryPlayer[];
+  card_roles?: CardRoleRow[];
 };
 
 type SessionMetric = {
@@ -73,6 +83,26 @@ type SessionMetric = {
   cards_played: number;
   cards_won: number;
   cards_lost: number;
+
+  bid_owner_cards: number;
+  bid_owner_wins: number;
+  bid_owner_losses: number;
+  bid_owner_net: number;
+
+  non_bid_owner_cards: number;
+  non_bid_owner_wins: number;
+  non_bid_owner_losses: number;
+  non_bid_owner_net: number;
+
+  club_bid_owner_cards: number;
+  club_bid_owner_wins: number;
+  club_bid_owner_losses: number;
+  club_bid_owner_net: number;
+
+  club_non_bid_owner_cards: number;
+  club_non_bid_owner_wins: number;
+  club_non_bid_owner_losses: number;
+  club_non_bid_owner_net: number;
 };
 
 function money(v: number | string | undefined) {
@@ -88,8 +118,8 @@ function pct(numerator: number, denominator: number) {
 }
 
 function amountClass(v: number) {
-  if (v > 0) return "text-emerald-300";
-  if (v < 0) return "text-rose-300";
+  if (v > 0) return "money-positive";
+  if (v < 0) return "money-negative";
   return "text-slate-300";
 }
 
@@ -123,15 +153,10 @@ export default function MetricsPage() {
       setLoading(true);
       setError("");
 
-        try {
-        if (!user) {
-            throw new Error("User not authenticated.");
-        }
-
-        const email = user.primaryEmailAddress?.emailAddress;
-
+      try {
+        const email = user?.primaryEmailAddress?.emailAddress;
         if (!email) {
-            throw new Error("Signed-in user does not have a primary email.");
+          throw new Error("Signed-in user does not have a primary email.");
         }
 
         const syncRes = await fetch(`${API_BASE}/users/sync`, {
@@ -218,6 +243,79 @@ export default function MetricsPage() {
             }
           }
 
+          let bidOwnerCards = 0;
+          let bidOwnerWins = 0;
+          let bidOwnerLosses = 0;
+          let bidOwnerNet = 0;
+
+          let nonBidOwnerCards = 0;
+          let nonBidOwnerWins = 0;
+          let nonBidOwnerLosses = 0;
+          let nonBidOwnerNet = 0;
+
+          let clubBidOwnerCards = 0;
+          let clubBidOwnerWins = 0;
+          let clubBidOwnerLosses = 0;
+          let clubBidOwnerNet = 0;
+
+          let clubNonBidOwnerCards = 0;
+          let clubNonBidOwnerWins = 0;
+          let clubNonBidOwnerLosses = 0;
+          let clubNonBidOwnerNet = 0;
+
+          for (const roleRow of scoreboard.card_roles || []) {
+            const bidOwnerId = roleRow.bid_owner_user_id;
+            const bidOwnerWon = roleRow.bid_owner_won;
+            const amount = Number(roleRow.amount_won ?? 0);
+            const participantIds = roleRow.participant_ids || [];
+
+            if (!bidOwnerId || bidOwnerWon === null) continue;
+            if (!participantIds.includes(syncData.id)) continue;
+
+            const nonOwnerIds = participantIds.filter((pid) => pid !== bidOwnerId);
+            const opponentCount = nonOwnerIds.length;
+
+            // club averages within finalized games you participated in
+            clubBidOwnerCards += 1;
+            if (bidOwnerWon) {
+              clubBidOwnerWins += 1;
+              clubBidOwnerNet += amount * opponentCount;
+            } else {
+              clubBidOwnerLosses += 1;
+              clubBidOwnerNet -= amount * opponentCount;
+            }
+
+            clubNonBidOwnerCards += nonOwnerIds.length;
+            if (bidOwnerWon) {
+              clubNonBidOwnerLosses += nonOwnerIds.length;
+              clubNonBidOwnerNet -= amount * nonOwnerIds.length;
+            } else {
+              clubNonBidOwnerWins += nonOwnerIds.length;
+              clubNonBidOwnerNet += amount * nonOwnerIds.length;
+            }
+
+            // player role metrics
+            if (bidOwnerId === syncData.id) {
+              bidOwnerCards += 1;
+              if (bidOwnerWon) {
+                bidOwnerWins += 1;
+                bidOwnerNet += amount * opponentCount;
+              } else {
+                bidOwnerLosses += 1;
+                bidOwnerNet -= amount * opponentCount;
+              }
+            } else {
+              nonBidOwnerCards += 1;
+              if (bidOwnerWon) {
+                nonBidOwnerLosses += 1;
+                nonBidOwnerNet -= amount;
+              } else {
+                nonBidOwnerWins += 1;
+                nonBidOwnerNet += amount;
+              }
+            }
+          }
+
           metricResults.push({
             game_id: game.id,
             title: game.title,
@@ -232,6 +330,26 @@ export default function MetricsPage() {
             cards_played: cardsPlayed,
             cards_won: cardsWon,
             cards_lost: cardsLost,
+
+            bid_owner_cards: bidOwnerCards,
+            bid_owner_wins: bidOwnerWins,
+            bid_owner_losses: bidOwnerLosses,
+            bid_owner_net: bidOwnerNet,
+
+            non_bid_owner_cards: nonBidOwnerCards,
+            non_bid_owner_wins: nonBidOwnerWins,
+            non_bid_owner_losses: nonBidOwnerLosses,
+            non_bid_owner_net: nonBidOwnerNet,
+
+            club_bid_owner_cards: clubBidOwnerCards,
+            club_bid_owner_wins: clubBidOwnerWins,
+            club_bid_owner_losses: clubBidOwnerLosses,
+            club_bid_owner_net: clubBidOwnerNet,
+
+            club_non_bid_owner_cards: clubNonBidOwnerCards,
+            club_non_bid_owner_wins: clubNonBidOwnerWins,
+            club_non_bid_owner_losses: clubNonBidOwnerLosses,
+            club_non_bid_owner_net: clubNonBidOwnerNet,
           });
         }
 
@@ -302,6 +420,97 @@ export default function MetricsPage() {
       avgCard: totalCards ? totalMoney / totalCards : 0,
     };
   }, [sessionMetrics]);
+
+  const roleTotals = useMemo(() => {
+    const bidOwnerCards = sessionMetrics.reduce((sum, s) => sum + s.bid_owner_cards, 0);
+    const bidOwnerWins = sessionMetrics.reduce((sum, s) => sum + s.bid_owner_wins, 0);
+    const bidOwnerLosses = sessionMetrics.reduce((sum, s) => sum + s.bid_owner_losses, 0);
+    const bidOwnerNet = sessionMetrics.reduce((sum, s) => sum + s.bid_owner_net, 0);
+
+    const nonBidOwnerCards = sessionMetrics.reduce(
+      (sum, s) => sum + s.non_bid_owner_cards,
+      0
+    );
+    const nonBidOwnerWins = sessionMetrics.reduce(
+      (sum, s) => sum + s.non_bid_owner_wins,
+      0
+    );
+    const nonBidOwnerLosses = sessionMetrics.reduce(
+      (sum, s) => sum + s.non_bid_owner_losses,
+      0
+    );
+    const nonBidOwnerNet = sessionMetrics.reduce(
+      (sum, s) => sum + s.non_bid_owner_net,
+      0
+    );
+
+    const clubBidOwnerCards = sessionMetrics.reduce(
+      (sum, s) => sum + s.club_bid_owner_cards,
+      0
+    );
+    const clubBidOwnerWins = sessionMetrics.reduce(
+      (sum, s) => sum + s.club_bid_owner_wins,
+      0
+    );
+    const clubBidOwnerNet = sessionMetrics.reduce(
+      (sum, s) => sum + s.club_bid_owner_net,
+      0
+    );
+
+    const clubNonBidOwnerCards = sessionMetrics.reduce(
+      (sum, s) => sum + s.club_non_bid_owner_cards,
+      0
+    );
+    const clubNonBidOwnerWins = sessionMetrics.reduce(
+      (sum, s) => sum + s.club_non_bid_owner_wins,
+      0
+    );
+    const clubNonBidOwnerNet = sessionMetrics.reduce(
+      (sum, s) => sum + s.club_non_bid_owner_net,
+      0
+    );
+
+    return {
+      bidOwnerCards,
+      bidOwnerWins,
+      bidOwnerLosses,
+      bidOwnerNet,
+      bidOwnerWinPct: bidOwnerCards ? (bidOwnerWins / bidOwnerCards) * 100 : 0,
+      bidOwnerAvg: bidOwnerCards ? bidOwnerNet / bidOwnerCards : 0,
+
+      nonBidOwnerCards,
+      nonBidOwnerWins,
+      nonBidOwnerLosses,
+      nonBidOwnerNet,
+      nonBidOwnerWinPct: nonBidOwnerCards
+        ? (nonBidOwnerWins / nonBidOwnerCards) * 100
+        : 0,
+      nonBidOwnerAvg: nonBidOwnerCards ? nonBidOwnerNet / nonBidOwnerCards : 0,
+
+      clubBidOwnerCards,
+      clubBidOwnerWins,
+      clubBidOwnerNet,
+      clubBidOwnerWinPct: clubBidOwnerCards
+        ? (clubBidOwnerWins / clubBidOwnerCards) * 100
+        : 0,
+      clubBidOwnerAvg: clubBidOwnerCards
+        ? clubBidOwnerNet / clubBidOwnerCards
+        : 0,
+
+      clubNonBidOwnerCards,
+      clubNonBidOwnerWins,
+      clubNonBidOwnerNet,
+      clubNonBidOwnerWinPct: clubNonBidOwnerCards
+        ? (clubNonBidOwnerWins / clubNonBidOwnerCards) * 100
+        : 0,
+      clubNonBidOwnerAvg: clubNonBidOwnerCards
+        ? clubNonBidOwnerNet / clubNonBidOwnerCards
+        : 0,
+
+      aggressionRate:
+        totals.totalCards > 0 ? (bidOwnerCards / totals.totalCards) * 100 : 0,
+    };
+  }, [sessionMetrics, totals.totalCards]);
 
   const monthlyBreakdown = useMemo(() => {
     const map = new Map<
@@ -384,7 +593,8 @@ export default function MetricsPage() {
             My Metrics
           </h1>
           <p className="mt-2 text-sm text-slate-400">
-            Personal performance across completed sessions, hands, and cards.
+            Personal performance across completed sessions, hands, cards, and
+            role-specific decision stats.
           </p>
         </div>
 
@@ -482,6 +692,104 @@ export default function MetricsPage() {
               </div>
               <div className="mt-3 text-sm text-slate-300">
                 Your roughest completed-session result.
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-6">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-white">Role Performance</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                How you perform as the bid owner versus when you are not the bid owner.
+                Club averages are based on finalized sessions included in your history.
+              </p>
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-3">
+              <div className="lp-card">
+                <div className="text-sm text-slate-400">As Bid Owner</div>
+                <div className="mt-3 text-2xl font-bold text-white">
+                  {roleTotals.bidOwnerCards} cards
+                </div>
+                <div className="mt-4 space-y-2 text-sm text-slate-300">
+                  <div>Wins: {roleTotals.bidOwnerWins}</div>
+                  <div>Losses: {roleTotals.bidOwnerLosses}</div>
+                  <div>Win %: {pct(roleTotals.bidOwnerWins, roleTotals.bidOwnerCards)}</div>
+                  <div className={amountClass(roleTotals.bidOwnerNet)}>
+                    Net: {money(roleTotals.bidOwnerNet)}
+                  </div>
+                  <div className={amountClass(roleTotals.bidOwnerAvg)}>
+                    Avg / Bid Owner Card: {money(roleTotals.bidOwnerAvg)}
+                  </div>
+                  <div>
+                    Club Avg Win %: {roleTotals.clubBidOwnerWinPct.toFixed(1)}%
+                  </div>
+                  <div
+                    className={amountClass(
+                      roleTotals.bidOwnerWinPct - roleTotals.clubBidOwnerWinPct
+                    )}
+                  >
+                    Delta vs Club:{" "}
+                    {(roleTotals.bidOwnerWinPct - roleTotals.clubBidOwnerWinPct).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="lp-card">
+                <div className="text-sm text-slate-400">As Non-Bid-Owner</div>
+                <div className="mt-3 text-2xl font-bold text-white">
+                  {roleTotals.nonBidOwnerCards} cards
+                </div>
+                <div className="mt-4 space-y-2 text-sm text-slate-300">
+                  <div>Wins: {roleTotals.nonBidOwnerWins}</div>
+                  <div>Losses: {roleTotals.nonBidOwnerLosses}</div>
+                  <div>
+                    Win %: {pct(roleTotals.nonBidOwnerWins, roleTotals.nonBidOwnerCards)}
+                  </div>
+                  <div className={amountClass(roleTotals.nonBidOwnerNet)}>
+                    Net: {money(roleTotals.nonBidOwnerNet)}
+                  </div>
+                  <div className={amountClass(roleTotals.nonBidOwnerAvg)}>
+                    Avg / Non-Bid-Owner Card: {money(roleTotals.nonBidOwnerAvg)}
+                  </div>
+                  <div>
+                    Club Avg Win %: {roleTotals.clubNonBidOwnerWinPct.toFixed(1)}%
+                  </div>
+                  <div
+                    className={amountClass(
+                      roleTotals.nonBidOwnerWinPct - roleTotals.clubNonBidOwnerWinPct
+                    )}
+                  >
+                    Delta vs Club:{" "}
+                    {(roleTotals.nonBidOwnerWinPct - roleTotals.clubNonBidOwnerWinPct).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="lp-card">
+                <div className="text-sm text-slate-400">Player Style</div>
+                <div className="mt-3 text-2xl font-bold text-white">
+                  {roleTotals.aggressionRate.toFixed(1)}%
+                </div>
+                <div className="mt-1 text-sm text-slate-400">
+                  Aggression Rate (how often you are the bid owner)
+                </div>
+
+                <div className="mt-4 space-y-2 text-sm text-slate-300">
+                  <div>
+                    Profit from Bid Owner Role: {money(roleTotals.bidOwnerNet)}
+                  </div>
+                  <div>
+                    Profit from Non-Bid-Owner Role: {money(roleTotals.nonBidOwnerNet)}
+                  </div>
+                  <div className="text-slate-400">
+                    {roleTotals.bidOwnerNet > roleTotals.nonBidOwnerNet
+                      ? "You currently make more money as the bid owner."
+                      : roleTotals.nonBidOwnerNet > roleTotals.bidOwnerNet
+                      ? "You currently make more money when beating bid owners."
+                      : "Your profits are currently balanced across both roles."}
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -635,6 +943,11 @@ export default function MetricsPage() {
                           <div className="mt-2 text-sm text-slate-300">
                             Hands: {s.hands_played} • Hand Win %:{" "}
                             {pct(s.hands_won, s.hands_played)} • Cards: {s.cards_played}
+                          </div>
+                          <div className="mt-1 text-sm text-slate-300">
+                            Bid Owner Win %: {pct(s.bid_owner_wins, s.bid_owner_cards)} •
+                            Non-Bid-Owner Win %:{" "}
+                            {pct(s.non_bid_owner_wins, s.non_bid_owner_cards)}
                           </div>
                         </div>
 
