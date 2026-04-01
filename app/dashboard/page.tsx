@@ -118,6 +118,32 @@ export default function DashboardPage() {
     run();
   }, [API_BASE, isLoaded, user]);
 
+  async function deleteGame(gameId: string) {
+    if (!appUser) return
+
+    const ok = window.confirm(
+      "Delete this game? This cannot be undone."
+    )
+    if (!ok) return
+
+    try {
+      const res = await fetch(`${API_BASE}/games/${gameId}`, {
+        method: "DELETE",
+        headers: {
+          "X-User-Id": appUser.id,
+        },
+      })
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || "Delete failed")
+      }
+
+      setGames((prev) => prev.filter((g) => g.id !== gameId))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed")
+    }
+  }
   return (
     <main className="min-h-screen px-6 py-10">
       <div className="mx-auto max-w-6xl">
@@ -265,15 +291,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="grid gap-3">
                   {activeGames.map((game) => (
-                    <Link
-                      key={game.id}
-                      href={
-                        canScore(appUser?.role)
-                          ? `/games/${game.id}`
-                          : `/games/${game.id}/scoreboard`
-                      }
-                      className="lp-card-soft hover:opacity-90"
-                    >
+                    <div key={game.id} className="lp-card-soft">
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                           <div className="text-lg font-semibold text-white">
@@ -284,13 +302,32 @@ export default function DashboardPage() {
                             {Number(game.base_bet).toFixed(2)}
                           </div>
                         </div>
-                        <div className="text-sm font-semibold text-slate-300">
-                          {canScore(appUser?.role)
-                            ? "Open Table →"
-                            : "View Scoreboard →"}
+
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            href={
+                              canScore(appUser?.role)
+                                ? `/games/${game.id}`
+                                : `/games/${game.id}/scoreboard`
+                            }
+                            className="lp-button-secondary"
+                          >
+                            {canScore(appUser?.role) ? "Open Table" : "View Scoreboard"}
+                          </Link>
+
+                          {(appUser?.role === "super_admin" ||
+                            appUser?.role === "club_admin") && (
+                            <button
+                              onClick={() => deleteGame(game.id)}
+                              className="lp-button-secondary"
+                              style={{ color: "var(--negative)" }}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
@@ -324,11 +361,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="grid gap-3">
                   {pastGames.map((game) => (
-                    <Link
-                      key={game.id}
-                      href={`/games/${game.id}/scoreboard`}
-                      className="lp-card-soft hover:opacity-90"
-                    >
+                    <div key={game.id} className="lp-card-soft">
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                           <div className="text-lg font-semibold text-white">
@@ -337,17 +370,31 @@ export default function DashboardPage() {
                           <div className="mt-1 text-sm text-slate-400">
                             {game.settlement_mode} • {game.cards_per_hand} cards • $
                             {Number(game.base_bet).toFixed(2)}
-                            {game.finalized_at
-                              ? ` • Finalized ${game.finalized_at}`
-                              : ""}
+                            {game.finalized_at ? ` • Finalized ${game.finalized_at}` : ""}
                           </div>
                         </div>
 
-                        <div className="text-sm font-semibold text-slate-300">
-                          View Scoreboard →
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            href={`/games/${game.id}/scoreboard`}
+                            className="lp-button-secondary"
+                          >
+                            View Scoreboard
+                          </Link>
+
+                          {(appUser?.role === "super_admin" ||
+                            appUser?.role === "club_admin") && (
+                            <button
+                              onClick={() => deleteGame(game.id)}
+                              className="lp-button-secondary"
+                              style={{ color: "var(--negative)" }}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
