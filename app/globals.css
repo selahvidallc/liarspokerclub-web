@@ -441,3 +441,108 @@ tr:hover td {
 [data-theme="light"] .text-rose-200 {
   color: #b91c1c !important;
 }
+
+/* ======================================================== */
+/* THEME-AWARE MODALS / OVERLAYS                            */
+/* ======================================================== */
+
+.lp-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+[data-theme="light"] .lp-overlay {
+  background: rgba(15, 23, 42, 0.18);
+}
+
+.lp-modal {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.lp-modal-muted {
+  color: var(--muted);
+}
+/* ======================================================== */
+/* LIGHT MODE POLISH                                        */
+/* ======================================================== */
+
+[data-theme="light"] .lp-button {
+  background: linear-gradient(180deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+}
+
+[data-theme="light"] .lp-button:hover {
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+}
+
+[data-theme="light"] .lp-button-secondary {
+  background: #ffffff;
+  color: var(--text);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .lp-button-secondary:hover {
+  background: #f8fbff;
+  border-color: rgba(29, 78, 216, 0.22);
+  color: #0f172a;
+}
+
+[data-theme="light"] .lp-card {
+  background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+}
+
+[data-theme="light"] .lp-card-soft {
+  background: linear-gradient(180deg, #f8fbff 0%, #f3f8fe 100%);
+}
+
+[data-theme="light"] table {
+  background: transparent;
+}
+
+[data-theme="light"] th {
+  background: #edf4fb;
+  color: #334155;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+  font-weight: 800;
+}
+
+[data-theme="light"] td {
+  color: #0f172a;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] tr:hover td {
+  background: #f4f8fd;
+}
+
+[data-theme="light"] .rounded-2xl.border.border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+
+[data-theme="light"] .bg-white\/5 {
+  background: #edf4fb !important;
+}
+
+[data-theme="light"] .text-slate-500 {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .text-slate-200 {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/10:hover {
+  background: #eef4fb !important;
+}
+
+[data-theme="light"] code {
+  background: #eef4fb;
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}

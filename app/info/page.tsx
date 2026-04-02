@@ -155,7 +155,7 @@ export default async function Page({ searchParams }: InfoPageProps) {
                 <tr>
                   <td className="px-4 py-4 font-semibold text-white">Hand</td>
                   <td className="px-4 py-4 text-slate-300">
-                    One full bidding / reveal cycle using all cards in play
+                    One to many cards are in a Hand
                   </td>
                 </tr>
                 <tr>
@@ -169,7 +169,7 @@ export default async function Page({ searchParams }: InfoPageProps) {
                     Settlement Mode
                   </td>
                   <td className="px-4 py-4 text-slate-300">
-                    Per Hand or Cumulative Session (“Cum Cum”)
+                    Per Hand or Cumulative Session
                   </td>
                 </tr>
               </tbody>
@@ -193,7 +193,7 @@ export default async function Page({ searchParams }: InfoPageProps) {
 
             <div className="lp-card-soft">
               <h3 className="mb-2 text-lg font-bold text-white">
-                Cumulative Session (“Cum Cum”)
+                Cumulative Session
               </h3>
               <p className="text-slate-300">
                 All hands in the session are tracked, and the net winnings or

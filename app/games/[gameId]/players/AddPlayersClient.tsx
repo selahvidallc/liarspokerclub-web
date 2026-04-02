@@ -437,11 +437,11 @@ export default function AddPlayersClient({
 
       {showCreateModal && isScorekeeper && (
         <div
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm"
+          className="lp-overlay fixed inset-0 z-[1000] flex items-center justify-center p-6"
           onClick={closeCreateModal}
         >
           <div
-            className="w-full max-w-xl rounded-3xl border border-white/10 bg-slate-900/95 p-6 shadow-2xl"
+            className="lp-modal w-full max-w-xl rounded-3xl p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5">

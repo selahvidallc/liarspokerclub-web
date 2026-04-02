@@ -13,10 +13,10 @@ export default function RootLayout({
   const themeScript = `
     (function() {
       try {
-        var saved = localStorage.getItem('lp-theme') || 'dark';
+        var saved = localStorage.getItem('lp-theme') || 'light';
         document.documentElement.setAttribute('data-theme', saved);
       } catch (e) {
-        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-theme', 'light');
       }
     })();
   `

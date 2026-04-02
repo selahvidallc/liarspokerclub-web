@@ -23,7 +23,7 @@ export default function ProfilePage() {
 
   const [appUser, setAppUser] = useState<AppUser | null>(null)
   const [displayName, setDisplayName] = useState("")
-  const [theme, setTheme] = useState<ThemeOption>("dark")
+  const [theme, setTheme] = useState<ThemeOption>("light")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -31,7 +31,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const savedTheme =
-      (localStorage.getItem("lp-theme") as ThemeOption | null) || "dark"
+      (localStorage.getItem("lp-theme") as ThemeOption | null) || "light"
     setTheme(savedTheme)
     document.documentElement.setAttribute("data-theme", savedTheme)
   }, [])

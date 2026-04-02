@@ -568,8 +568,8 @@ export default function ScoreboardClient({
       />
 
       {editingCardGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
+        <div className="lp-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="lp-modal w-full max-w-md rounded-2xl p-6">
             <div className="mb-4 text-xl font-bold text-white">
               Edit Card {editingCardGroup.card_number}
             </div>
