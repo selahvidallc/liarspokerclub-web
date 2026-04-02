@@ -546,3 +546,58 @@ tr:hover td {
   color: #0f172a;
   border: 1px solid rgba(15, 23, 42, 0.08);
 }
+/* ======================================================== */
+/* LIGHT MODE MESSAGE / ALERT READABILITY                   */
+/* ======================================================== */
+
+[data-theme="light"] .bg-amber-500\/10 {
+  background: #fff7e6 !important;
+}
+
+[data-theme="light"] .border-amber-500\/30 {
+  border-color: #f59e0b !important;
+}
+
+[data-theme="light"] .text-amber-100,
+[data-theme="light"] .text-amber-200,
+[data-theme="light"] .text-amber-200\/90 {
+  color: #92400e !important;
+}
+
+[data-theme="light"] .bg-emerald-500\/10 {
+  background: #ecfdf5 !important;
+}
+
+[data-theme="light"] .border-emerald-500\/30 {
+  border-color: #34d399 !important;
+}
+
+[data-theme="light"] .text-emerald-200 {
+  color: #065f46 !important;
+}
+
+[data-theme="light"] .bg-rose-500\/10 {
+  background: #fff1f2 !important;
+}
+
+[data-theme="light"] .border-rose-500\/30 {
+  border-color: #fb7185 !important;
+}
+
+[data-theme="light"] .text-rose-200 {
+  color: #9f1239 !important;
+}
+
+/* ======================================================== */
+/* LIGHT MODE MONEY COLORS                                  */
+/* ======================================================== */
+
+[data-theme="light"] .money-positive {
+  color: #15803d !important;
+  font-weight: 800;
+}
+
+[data-theme="light"] .money-negative {
+  color: #dc2626 !important;
+  font-weight: 800;
+}
