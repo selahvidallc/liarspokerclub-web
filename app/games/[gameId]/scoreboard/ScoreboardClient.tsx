@@ -11,29 +11,33 @@ type HandPlayerRow = {
   hand_total: number;
 };
 
-type CardDetail = {
+type SettlementRow = {
   row_id: string;
-  card_number: number;
   winner_user_id: string | null;
   loser_user_id: string | null;
   amount_won: number;
-  final_bid_raw: string | null;
-  notes: string | null;
 };
 
-type CardGroup = {
+type CardView = {
   card_number: number;
-  rows: CardDetail[];
+  label: string;
+  bid_owner_user_id: string | null;
+  bid_owner_won: boolean | null;
+  final_bid_raw: string | null;
+  notes: string | null;
+  amount_won: number;
+  participant_ids: string[];
+  settlement_rows: SettlementRow[];
 };
 
 type HandBoard = {
   hand_number: number;
-  cards: string[];
+  cards: CardView[];
   players: HandPlayerRow[];
   card_totals: Record<string, number>;
   hand_total_sum: number;
-  cards_detail?: CardDetail[];
 };
+
 
 type HandSummaryRow = {
   hand_number: number;
@@ -103,27 +107,6 @@ function playerName(
   return players.find((p) => p.id === id)?.display_name || id;
 }
 
-function groupCards(cards?: CardDetail[] | null): CardGroup[] {
-  const safeCards = Array.isArray(cards) ? cards : [];
-  const grouped = new Map<number, CardDetail[]>();
-
-  for (const row of safeCards) {
-    const cardNumber = Number(row?.card_number ?? 0);
-    if (!Number.isFinite(cardNumber) || cardNumber <= 0) continue;
-
-    const list = grouped.get(cardNumber) || [];
-    list.push(row);
-    grouped.set(cardNumber, list);
-  }
-
-  return Array.from(grouped.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([card_number, rows]) => ({
-      card_number,
-      rows,
-    }));
-}
-
 export default function ScoreboardClient({
   gameId,
   data,
@@ -150,7 +133,7 @@ export default function ScoreboardClient({
   );
   const safePlayers = useMemo(() => (Array.isArray(players) ? players : []), [players]);
 
-  const [editingCardGroup, setEditingCardGroup] = useState<CardGroup | null>(null);
+  const [editingCard, setEditingCard] = useState<(CardView & { hand_number: number }) | null>(null);
   const [saving, setSaving] = useState(false);
   const [editBidOwnerUserId, setEditBidOwnerUserId] = useState("");
   const [editBidOwnerWon, setEditBidOwnerWon] = useState(true);
@@ -158,56 +141,20 @@ export default function ScoreboardClient({
   const [editBid, setEditBid] = useState("");
   const [editNotes, setEditNotes] = useState("");
 
-  function openEditGroup(group: CardGroup) {
-    const rows = Array.isArray(group.rows) ? group.rows : [];
-    const first = rows[0];
-    if (!first) return;
-
-    const uniqueWinners = Array.from(
-      new Set(rows.map((r) => r.winner_user_id).filter(Boolean))
-    );
-    const uniqueLosers = Array.from(
-      new Set(rows.map((r) => r.loser_user_id).filter(Boolean))
-    );
-
-    let bidOwnerUserId = "";
-    let bidOwnerWon = true;
-
-    if (uniqueWinners.length === 1) {
-      bidOwnerUserId = String(uniqueWinners[0] || "");
-      bidOwnerWon = true;
-    } else if (uniqueLosers.length === 1) {
-      bidOwnerUserId = String(uniqueLosers[0] || "");
-      bidOwnerWon = false;
-    }
-
-    setEditingCardGroup(group);
-    setEditBidOwnerUserId(bidOwnerUserId);
-    setEditBidOwnerWon(bidOwnerWon);
-    setEditAmount(String(first.amount_won ?? ""));
-    setEditBid(first.final_bid_raw ?? "");
-    setEditNotes(first.notes ?? "");
+  function openEditCard(handNumber: number, card: CardView) {
+    setEditingCard({ ...card, hand_number: handNumber });
+    setEditBidOwnerUserId(card.bid_owner_user_id ?? "");
+    setEditBidOwnerWon(card.bid_owner_won ?? true);
+    setEditAmount(String(card.amount_won ?? ""));
+    setEditBid(card.final_bid_raw ?? "");
+    setEditNotes(card.notes ?? "");
   }
 
   async function saveEdit() {
-    if (!editingCardGroup) return;
+    if (!editingCard) return;
 
     if (!canEdit) {
       alert("Not authorized");
-      return;
-    }
-
-    const targetHand = safeHands.find((h) =>
-      groupCards(h.cards_detail).some(
-        (g) =>
-          g.card_number === editingCardGroup.card_number &&
-          JSON.stringify((g.rows ?? []).map((r) => r.row_id).sort()) ===
-            JSON.stringify((editingCardGroup.rows ?? []).map((r) => r.row_id).sort())
-      )
-    );
-
-    if (!targetHand) {
-      alert("Could not find matching hand for this card.");
       return;
     }
 
@@ -217,8 +164,8 @@ export default function ScoreboardClient({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          hand_number: targetHand.hand_number,
-          card_number: editingCardGroup.card_number,
+          hand_number: editingCard.hand_number,
+          card_number: editingCard.card_number,
           bid_owner_user_id: editBidOwnerUserId,
           bid_owner_won: editBidOwnerWon,
           amount_won: editAmount === "" ? 0 : Number(editAmount),
@@ -229,12 +176,12 @@ export default function ScoreboardClient({
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || "Failed to update card group");
+        throw new Error(text || "Failed to update card");
       }
 
       window.location.reload();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update card group");
+      alert(err instanceof Error ? err.message : "Failed to update card");
     } finally {
       setSaving(false);
     }
@@ -262,8 +209,8 @@ export default function ScoreboardClient({
       <div className="grid gap-6">
         {safeHands.map((hand) => {
           const handCards = Array.isArray(hand.cards) ? hand.cards : [];
+          const handCardLabels = handCards.map((c) => c.label);
           const handPlayers = Array.isArray(hand.players) ? hand.players : [];
-          const groupedCards = groupCards(hand.cards_detail);
 
           return (
             <section key={hand.hand_number} className="lp-card">
@@ -287,7 +234,7 @@ export default function ScoreboardClient({
                   <thead>
                     <tr className="bg-white/5">
                       <th className="w-[120px] px-2 py-3 text-left">Player</th>
-                      {handCards.map((card) => (
+                      {handCardLabels.map((card) => (
                         <th key={card} className="w-[82px] px-2 py-3 text-right">
                           {card}
                         </th>
@@ -308,7 +255,7 @@ export default function ScoreboardClient({
                           </div>
                         </td>
 
-                        {handCards.map((card) => {
+                        {handCardLabels.map((card) => {
                           const v = Number((p.cards || {})[card] ?? 0);
                           return (
                             <td
@@ -337,7 +284,7 @@ export default function ScoreboardClient({
                         Hand Total
                       </td>
 
-                      {handCards.map((card) => {
+                      {handCardLabels.map((card) => {
                         const total = Number((hand.card_totals || {})[card] ?? 0);
                         return (
                           <td
@@ -369,38 +316,45 @@ export default function ScoreboardClient({
                 </div>
 
                 <div className="divide-y divide-white/10">
-                  {groupedCards.length === 0 ? (
+                  {handCards.length === 0 ? (
                     <div className="px-4 py-3 text-sm text-slate-400">
                       No card detail rows found.
                     </div>
                   ) : (
-                    groupedCards.map((group) => {
-                      const first = group.rows?.[0];
-                      if (!first) return null;
-
-                      const losers = (group.rows ?? []).map((row) =>
-                        playerName(safePlayers, row.loser_user_id)
+                    handCards.map((card) => {
+                      const opponents = (card.settlement_rows ?? []).map((row) =>
+                        playerName(
+                          safePlayers,
+                          card.bid_owner_won ? row.loser_user_id : row.winner_user_id
+                        )
                       );
 
                       return (
-                        <details key={group.card_number} className="group">
+                        <details key={card.card_number} className="group">
                           <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-white/5">
                             <div className="text-sm text-slate-300">
                               <div>
                                 <span className="font-semibold text-white">
-                                  Card {group.card_number}
+                                  {card.label}
                                 </span>{" "}
-                                • {money(first.amount_won)}
+                                • {money(card.amount_won)}
                               </div>
                               <div className="mt-1 text-xs text-slate-400">
-                                Bid Owner: {playerName(safePlayers, first.winner_user_id)}
+                                Bid Owner: {playerName(safePlayers, card.bid_owner_user_id)}
                               </div>
                               <div className="mt-1 text-xs text-slate-400">
-                                Opponents: {losers.join(", ")}
+                                Opponents: {opponents.join(", ")}
                               </div>
                               <div className="mt-1 text-xs text-slate-400">
-                                Bid: {first.final_bid_raw || "—"}
-                                {first.notes ? ` • ${first.notes}` : ""}
+                                Outcome: {card.bid_owner_won === true
+                                  ? "Bid Owner WON"
+                                  : card.bid_owner_won === false
+                                  ? "Bid Owner LOST"
+                                  : "—"}
+                              </div>
+                              <div className="mt-1 text-xs text-slate-400">
+                                Bid: {card.final_bid_raw || "—"}
+                                {card.notes ? ` • ${card.notes}` : ""}
                               </div>
                             </div>
 
@@ -418,7 +372,7 @@ export default function ScoreboardClient({
                             </div>
 
                             <div className="space-y-2">
-                              {(group.rows ?? []).map((row) => (
+                              {(card.settlement_rows ?? []).map((row) => (
                                 <div
                                   key={row.row_id}
                                   className="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300"
@@ -432,7 +386,7 @@ export default function ScoreboardClient({
 
                             <div className="mt-4">
                               {canEdit && (
-                                <button onClick={() => openEditGroup(group)}>
+                                <button onClick={() => openEditCard(hand.hand_number, card)}>
                                   Edit Card
                                 </button>
                               )}
@@ -567,11 +521,11 @@ export default function ScoreboardClient({
         appUserRole={appUserRole}
       />
 
-      {editingCardGroup && (
+      {editingCard && (
         <div className="lp-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="lp-modal w-full max-w-md rounded-2xl p-6">
             <div className="mb-4 text-xl font-bold text-white">
-              Edit Card {editingCardGroup.card_number}
+              Edit {editingCard.label}
             </div>
 
             <label className="mb-2 block text-sm text-slate-300">Bid Owner</label>
@@ -582,11 +536,7 @@ export default function ScoreboardClient({
             >
               <option value="">Select bid owner</option>
               {safePlayers
-                .filter((p) =>
-                  (editingCardGroup?.rows ?? []).some(
-                    (row) => row.winner_user_id === p.id || row.loser_user_id === p.id
-                  )
-                )
+                .filter((p) => editingCard?.participant_ids?.includes(p.id))
                 .map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.display_name}
@@ -642,7 +592,7 @@ export default function ScoreboardClient({
 
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setEditingCardGroup(null)}
+                onClick={() => setEditingCard(null)}
                 className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 hover:bg-white/10"
               >
                 Cancel
