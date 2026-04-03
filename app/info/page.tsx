@@ -25,7 +25,30 @@ export default async function Page({ searchParams }: InfoPageProps) {
           total frequency of specific digits appearing across all bills in play.
         </p>
       </div>
+      <div className="mb-6 flex flex-wrap gap-3">
+        <a
+          href="/dashboard"
+          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+        >
+          ← Dashboard
+        </a>
 
+        <a
+          href="/games/new"
+          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+        >
+          Create New Game
+        </a>
+
+        {gameId && (
+          <a
+            href={`/games/${gameId}`}
+            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          >
+            Back to Table
+          </a>
+        )}
+      </div>
       <div className="grid gap-6">
         <section className="lp-card">
           <h2 className="mb-4 text-2xl font-bold text-white">Core Setup</h2>

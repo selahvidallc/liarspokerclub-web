@@ -214,7 +214,21 @@ export default function NewGameClient({
           Set up the game, choose a preset or custom rules, and start the table.
         </p>
       </div>
+      <div className="mb-6 flex flex-wrap gap-3">
+        <a
+          href="/dashboard"
+          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+        >
+          ← Dashboard
+        </a>
 
+        <a
+          href="/info"
+          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+        >
+          Liar&apos;s Poker Info
+        </a>
+      </div>
       {msg && (
         <div
           className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
