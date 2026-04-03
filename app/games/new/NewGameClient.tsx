@@ -54,7 +54,7 @@ export default function NewGameClient({
   const [scorekeeper, setScorekeeper] = useState("")
   const [appUser, setAppUser] = useState<SyncResult | null>(null)
 
-  const [settlementMode, setSettlementMode] = useState("PER_HAND")
+  const [settlementMode, setSettlementMode] = useState("CUMULATIVE_SESSION")
 
   const [cardsPerHand, setCardsPerHand] = useState<number>(5)
   const [baseBet, setBaseBet] = useState("5.00")
@@ -195,8 +195,9 @@ export default function NewGameClient({
       const data = await res.json()
       setMsg(`Game created: ${data.id}`)
 
-      router.push(`/games/${data.id}`)
+      router.push(`/games/${data.id}/players`)
       router.refresh()
+      
     } catch (e: any) {
       setMsg(`Error: ${e?.message || String(e)}`)
     } finally {

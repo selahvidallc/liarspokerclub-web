@@ -108,6 +108,17 @@ export default function ScorerClient({
     }
   }, [handIsActuallyComplete, gameId, router])
 
+    useEffect(() => {
+    if (bidOwnerWon === true) {
+      setSkunk(false)
+    } else if (bidOwnerWon === false) {
+      setNut(false)
+    } else {
+      setNut(false)
+      setSkunk(false)
+    }
+
+  }, [bidOwnerWon])
   const resolvedBet = useMemo(() => {
     if (betAmount.trim()) return Number(betAmount)
 
@@ -423,37 +434,37 @@ export default function ScorerClient({
           <div className="lp-interactive-panel">
             <label className="lp-form-label">Flags</label>
             <div className="lp-toggle-row">
-              <label className="flex items-center gap-2 text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={nut}
-                  onChange={() => {
-                    const next = !nut
-                    setNut(next)
-                    if (next) setSkunk(false)
-                  }}
-                  className="w-auto"
-                />
-                Nut (double)
-              </label>
+              {bidOwnerWon === true && (
+                <label className="flex items-center gap-2 text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={nut}
+                    onChange={() => setNut(!nut)}
+                    className="w-auto"
+                  />
+                  Nut (double)
+                </label>
+              )}
 
-              <label
-                className={`flex items-center gap-2 ${
-                  nut ? "opacity-50" : "text-slate-200"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={skunk}
-                  disabled={nut}
-                  onChange={() => setSkunk(!skunk)}
-                  className="w-auto"
-                />
-                Skunk (double)
-              </label>
+              {bidOwnerWon === false && (
+                <label className="flex items-center gap-2 text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={skunk}
+                    onChange={() => setSkunk(!skunk)}
+                    className="w-auto"
+                  />
+                  Skunk (double)
+                </label>
+              )}
+
+              {bidOwnerWon === null && (
+                <div className="text-sm text-slate-400">
+                  Select whether the bid owner won or lost to see the available flag.
+                </div>
+              )}
             </div>
           </div>
-
           <div className="lp-interactive-panel">
             <label className="lp-form-label">Notes (optional)</label>
             <textarea
