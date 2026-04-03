@@ -67,12 +67,12 @@ export default function GameSessionActions({
   }
 
   return (
-    <section className="sticky bottom-4 z-20 mt-8 rounded-2xl border border-white/10 bg-slate-950/95 p-5 backdrop-blur">
+    <section className="lp-card sticky bottom-4 z-20 mt-8 p-5 backdrop-blur">
       <div className="mb-4">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           Session Actions
         </div>
-        <div className="mt-1 text-sm text-slate-300">
+        <div className="mt-1 text-sm text-slate-700">
           {handComplete
             ? "This hand is complete. Choose how to continue the session."
             : "Continue scoring the current hand, review the scoreboard, or end the session."}

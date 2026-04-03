@@ -94,9 +94,8 @@ function money(v: number | string | undefined) {
 }
 
 function amountClass(v: number) {
-  if (v > 0) return "money-positive";
   if (v < 0) return "money-negative";
-  return "text-slate-300";
+  return "text-slate-900";
 }
 
 function playerName(
@@ -406,7 +405,7 @@ export default function ScoreboardClient({
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold text-white">
-                Session Summary (Cum Cum)
+                Session Summary
               </h2>
               <p className="mt-1 text-sm text-slate-400">
                 Rollup of every hand into cumulative session totals.
