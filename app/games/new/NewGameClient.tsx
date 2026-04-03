@@ -516,6 +516,13 @@ export default function NewGameClient({
           </button>
 
           <a
+            href="/dashboard"
+            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          >
+            ← Dashboard
+          </a>
+
+          <a
             href="/info"
             className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
           >

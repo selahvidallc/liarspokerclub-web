@@ -251,6 +251,13 @@ export default async function Page({ searchParams }: InfoPageProps) {
               Create Player
             </a>
 
+            <a
+              href="/dashboard"
+              className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+            >
+              Dashboard
+            </a>
+
             {gameId && (
               <>
                 <a
@@ -265,12 +272,6 @@ export default async function Page({ searchParams }: InfoPageProps) {
                   className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
                 >
                   Back to Table
-                </a>
-                <a
-                  href="/dashboard"
-                  className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-                >
-                  Dashboard
                 </a>
               </>
             )}
