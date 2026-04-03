@@ -33,6 +33,7 @@ export default function AddPlayersClient({
 }) {
   const router = useRouter()
 
+  const [selectedUserId, setSelectedUserId] = useState("")
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [msg, setMsg] = useState("")
   const [working, setWorking] = useState(false)

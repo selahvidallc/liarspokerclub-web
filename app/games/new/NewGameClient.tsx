@@ -271,7 +271,7 @@ export default function NewGameClient({
               >
                 <option value="PER_HAND">Per Hand</option>
                 <option value="CUMULATIVE_SESSION">
-                  Cumulative Session (Cum Cum)
+                  Cumulative Session
                 </option>
               </select>
             </div>
