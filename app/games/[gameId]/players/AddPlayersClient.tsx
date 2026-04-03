@@ -33,7 +33,7 @@ export default function AddPlayersClient({
 }) {
   const router = useRouter()
 
-  const [selectedUserId, setSelectedUserId] = useState("")
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [msg, setMsg] = useState("")
   const [working, setWorking] = useState(false)
 
@@ -102,6 +102,49 @@ export default function AddPlayersClient({
     }
   }
 
+  function toggleUserSelection(userId: string) {
+    setSelectedUserIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    )
+  }
+
+  async function addMultiplePlayers() {
+    setMsg("")
+
+    if (!isScorekeeper) {
+      setMsg("Error: Only the scorekeeper can change this game.")
+      return
+    }
+
+    if (selectedUserIds.length === 0) {
+      setMsg("Select at least one player.")
+      return
+    }
+
+    setWorking(true)
+    try {
+      for (const userId of selectedUserIds) {
+        await fetch(
+          `${API_BASE}/games/${gameId}/players?user_id=${userId}`,
+          {
+            method: "POST",
+            headers: {
+              "X-User-Id": appUserId,
+            },
+          }
+        )
+      }
+
+      setSelectedUserIds([])
+      router.refresh()
+    } catch (e: any) {
+      setMsg(`Error: ${e?.message || String(e)}`)
+    } finally {
+      setWorking(false)
+    }
+  }
   async function removePlayer(userId: string) {
     setMsg("")
 
@@ -381,7 +424,52 @@ export default function AddPlayersClient({
                   Add Player
                 </button>
               </div>
+              <div className="mt-6">
+                <div className="mb-3 text-sm font-semibold text-slate-300">
+                  Or select multiple players:
+                </div>
 
+                <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+                  {availableUsers.map((u) => {
+                    const isSelected = selectedUserIds.includes(u.id)
+
+                    return (
+                      <label
+                        key={u.id}
+                        className={`lp-card-soft cursor-pointer border ${
+                          isSelected ? "ring-2 ring-blue-500" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleUserSelection(u.id)}
+                          />
+                          <div className="text-sm">
+                            <div className="font-semibold text-white">
+                              {u.display_name}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {u.email}
+                            </div>
+                          </div>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-4">
+                  <button
+                    onClick={addMultiplePlayers}
+                    disabled={working || creatingPlayer}
+                    className="lp-button"
+                  >
+                    Add Selected Players ({selectedUserIds.length})
+                  </button>
+                </div>
+              </div>
               <div className="mt-4">
                 <button
                   onClick={openCreateModal}
