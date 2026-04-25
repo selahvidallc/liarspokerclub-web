@@ -341,7 +341,17 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </td>
-
+                    <Link
+                      href={`/admin/players/${u.id}/metrics?name=${encodeURIComponent(u.display_name)}`}
+                      className="lp-button-secondary inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold"
+                    >
+                      Metrics
+                    </Link><Link
+                      href={`/admin/players/${u.id}/metrics?name=${encodeURIComponent(u.display_name)}`}
+                      className="lp-button-secondary inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold"
+                    >
+                      Metrics
+                    </Link>
                     <td className="px-3 py-3 text-right">
                       <button
                         onClick={() => saveUser(u)}
