@@ -302,7 +302,7 @@ export default function AdminPage() {
                   <th className="px-3 py-3 text-left">Display Name</th>
                   <th className="px-3 py-3 text-left">Email</th>
                   <th className="px-3 py-3 text-left">Role</th>
-                  <th className="px-3 py-3 text-right">Action</th>
+                  <th className="px-5 py-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
