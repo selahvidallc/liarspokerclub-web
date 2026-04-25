@@ -33,9 +33,30 @@ type HandPlayerRow = {
   hand_total: number;
 };
 
+type SettlementRow = {
+  row_id: string;
+  winner_user_id: string;
+  loser_user_id: string;
+  amount_won: number;
+};
+
+type ScoreboardCard = {
+  hand_number: number;
+  card_number: number;
+  label: string;
+  bid_owner_user_id: string | null;
+  bid_owner_won: boolean | null;
+  final_bid_raw?: string | null;
+  is_nut?: boolean;
+  is_skunk?: boolean;
+  amount_won: number;
+  notes?: string | null;
+  settlement_rows?: SettlementRow[];
+};
+
 type HandBoard = {
   hand_number: number;
-  cards: string[];
+  cards: ScoreboardCard[];
   players: HandPlayerRow[];
   card_totals: Record<string, number>;
   hand_total_sum: number;
@@ -235,7 +256,9 @@ export default function MetricsPage() {
             const me = hand.players.find((p) => p.player_id === syncData.id);
             if (!me) continue;
 
-            for (const cardKey of hand.cards) {
+            for (const card of hand.cards) {
+              const cardKey =
+                typeof card === "string" ? card : card.label || `Card ${card.card_number}`;
               const amount = Number(me.cards[cardKey] ?? 0);
               cardsPlayed += 1;
               if (amount > 0) cardsWon += 1;
@@ -263,19 +286,32 @@ export default function MetricsPage() {
           let clubNonBidOwnerLosses = 0;
           let clubNonBidOwnerNet = 0;
 
-          for (const roleRow of scoreboard.card_roles || []) {
+          const roleCards = scoreboard.hands.flatMap((hand) => hand.cards || []);
+
+          for (const roleRow of roleCards as any[]) {
             const bidOwnerId = roleRow.bid_owner_user_id;
             const bidOwnerWon = roleRow.bid_owner_won;
             const amount = Number(roleRow.amount_won ?? 0);
-            const participantIds = roleRow.participant_ids || [];
+            const settlementRows = roleRow.settlement_rows || [];
 
-            if (!bidOwnerId || bidOwnerWon === null) continue;
+            if (!bidOwnerId || bidOwnerWon === null || bidOwnerWon === undefined) {
+              continue;
+            }
+
+            const participantIds = Array.from(
+              new Set(
+                settlementRows.flatMap((r: any) => [
+                  r.winner_user_id,
+                  r.loser_user_id,
+                ])
+              )
+            ).filter(Boolean) as string[];
+
             if (!participantIds.includes(syncData.id)) continue;
 
             const nonOwnerIds = participantIds.filter((pid) => pid !== bidOwnerId);
             const opponentCount = nonOwnerIds.length;
 
-            // club averages within finalized games you participated in
             clubBidOwnerCards += 1;
             if (bidOwnerWon) {
               clubBidOwnerWins += 1;
@@ -294,7 +330,6 @@ export default function MetricsPage() {
               clubNonBidOwnerNet += amount * nonOwnerIds.length;
             }
 
-            // player role metrics
             if (bidOwnerId === syncData.id) {
               bidOwnerCards += 1;
               if (bidOwnerWon) {
