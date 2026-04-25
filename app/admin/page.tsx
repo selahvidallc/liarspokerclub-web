@@ -341,20 +341,23 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </td>
-                    <Link
-                      href={`/admin/players/${u.id}/metrics?name=${encodeURIComponent(u.display_name)}`}
-                      className="lp-button-secondary inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold"
-                    >
-                      Metrics
-                    </Link>
-                    <td className="px-3 py-3 text-right">
-                      <button
-                        onClick={() => saveUser(u)}
-                        disabled={savingId === u.id}
-                        className="lp-button"
-                      >
-                        {savingId === u.id ? "Saving..." : "Save"}
-                      </button>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                        <Link
+                          href={`/admin/players/${u.id}/metrics?name=${encodeURIComponent(u.display_name)}`}
+                          className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-extrabold text-slate-900 shadow-sm hover:bg-slate-50"
+                        >
+                          Metrics
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => saveUser(u.id)}
+                          className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700"
+                        >
+                          Save
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
