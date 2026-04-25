@@ -57,13 +57,8 @@ export default function GameSessionActions({
     }
   }
 
-  function playSameHandSamePlayers() {
-    router.push(`/games/${gameId}/scorer?start_next_hand=1`)
-    router.refresh()
-  }
-
-  function changePlayersOrHandType() {
-    router.push(`/games/${gameId}/setup`)
+  function continueToSetup() {
+    router.push(`/games/${gameId}/setup?same_hand=1`)
   }
 
   return (
