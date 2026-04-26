@@ -13,11 +13,13 @@ export default function GameSessionActions({
   handComplete,
   appUserId,
   appUserRole,
+  gameStatus = "OPEN",
 }: {
   gameId: string
   handComplete: boolean
   appUserId: string
   appUserRole: "player" | "scorer" | "club_admin" | "super_admin"
+  gameStatus?: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -30,7 +32,8 @@ export default function GameSessionActions({
   const [msg, setMsg] = useState("")
 
   const canControl = canScore(appUserRole)
-
+  const isFinalized = gameStatus === "FINALIZED"
+  const canControlOpenGame = canControl && !isFinalized
   async function finalizeSession() {
     const ok = window.confirm(
       "Are you sure you want to end this session? Scoring will be locked."
@@ -74,7 +77,9 @@ export default function GameSessionActions({
           Session Actions
         </div>
         <div className="mt-1 text-sm text-slate-700">
-          {handComplete
+          {isFinalized
+            ? "This session is finalized. Scoring is locked."
+            : handComplete
             ? "This hand is complete. Create the next hand using the previous setup, or change players and hand type first."
             : "Continue scoring the current hand, review the scoreboard, or end the session."}
         </div>
@@ -87,7 +92,7 @@ export default function GameSessionActions({
       )}
 
       <div className="flex flex-wrap gap-3">
-        {canControl &&
+        {canControlOpenGame &&
           !isScorerPage &&
           (handComplete ? (
             !isSetupPage && (
@@ -134,7 +139,7 @@ export default function GameSessionActions({
           Dashboard
         </Link>
 
-        {canControl && (
+        {canControlOpenGame && (
           <button
             onClick={finalizeSession}
             disabled={busy}

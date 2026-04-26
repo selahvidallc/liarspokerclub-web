@@ -305,14 +305,10 @@ export default function DashboardPage() {
 
                         <div className="flex flex-wrap gap-2">
                           <Link
-                            href={
-                              canScore(appUser?.role)
-                                ? `/games/${game.id}`
-                                : `/games/${game.id}/scoreboard`
-                            }
+                            href={`/games/${game.id}/scoreboard`}
                             className="lp-button-secondary"
                           >
-                            {canScore(appUser?.role) ? "Open Table" : "View Scoreboard"}
+                            Go To Game
                           </Link>
 
                           {(appUser?.role === "super_admin" ||
