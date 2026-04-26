@@ -202,6 +202,10 @@ export default function ScoreboardClient({
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
       <div className="mb-8">
+        <div className="mb-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs text-slate-200">
+          <strong className="text-white">Scorekeeping Only</strong> This scoreboard tracks game results only.
+          Liar&apos;s Poker Club does not facilitate gambling, hold funds, or process wagers.
+        </div>
         <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
           Scoreboard
         </div>
