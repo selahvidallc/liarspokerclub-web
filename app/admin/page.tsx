@@ -352,7 +352,7 @@ export default function AdminPage() {
 
                         <button
                           type="button"
-                          onClick={() => saveUser(u.id)}
+                          onClick={() => saveUser(u)}
                           className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700"
                         >
                           Save
