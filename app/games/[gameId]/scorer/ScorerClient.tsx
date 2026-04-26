@@ -540,10 +540,10 @@ export default function ScorerClient({
             </a>
 
             <a
-              href={`/games/${gameId}`}
+              href={`/games/${gameId}/setup?same_hand=1`}
               className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
             >
-              Back to Table →
+              Change Players / Hand Type →
             </a>
 
             <button

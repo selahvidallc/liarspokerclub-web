@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import { canScore } from "@/lib/roles"
 
@@ -20,6 +20,12 @@ export default function GameSessionActions({
   appUserRole: "player" | "scorer" | "club_admin" | "super_admin"
 }) {
   const router = useRouter()
+  const pathname = usePathname()
+
+  const isScoreboardPage = pathname.includes(`/games/${gameId}/scoreboard`)
+  const isScorerPage = pathname.includes(`/games/${gameId}/scorer`)
+  const isSetupPage = pathname.includes(`/games/${gameId}/setup`)
+
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState("")
 
@@ -82,14 +88,17 @@ export default function GameSessionActions({
 
       <div className="flex flex-wrap gap-3">
         {canControl &&
+          !isScorerPage &&
           (handComplete ? (
-            <button
-              onClick={continueToSetup}
-              disabled={busy}
-              className="lp-button"
-            >
-              Create New Hand | Change Players | Hand Type
-            </button>
+            !isSetupPage && (
+              <button
+                onClick={continueToSetup}
+                disabled={busy}
+                className="lp-button"
+              >
+                Create New Hand | Change Players | Hand Type
+              </button>
+            )
           ) : (
             <button
               onClick={() => router.push(`/games/${gameId}/scorer`)}
@@ -100,19 +109,23 @@ export default function GameSessionActions({
             </button>
           ))}
 
-        <Link
-          href={`/games/${gameId}/scoreboard`}
-          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-        >
-          View Scoreboard
-        </Link>
+        {!isScoreboardPage && (
+          <Link
+            href={`/games/${gameId}/scoreboard`}
+            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          >
+            View Scoreboard
+          </Link>
+        )}
 
-        <Link
-          href={`/games/${gameId}`}
-          className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
-        >
-          Back to Table
-        </Link>
+        {!isSetupPage && (
+          <Link
+            href={`/games/${gameId}/setup?same_hand=1`}
+            className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"
+          >
+            Change Players / Hand Type
+          </Link>
+        )}
 
         <Link
           href="/dashboard"
