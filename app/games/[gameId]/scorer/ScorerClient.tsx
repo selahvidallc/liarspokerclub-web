@@ -49,6 +49,14 @@ function money(v: number | string | undefined) {
   if (!Number.isFinite(n)) return String(v)
   return n.toLocaleString(undefined, { style: "currency", currency: "USD" })
 }
+const editablePanelClass =
+  "rounded-2xl border-2 border-sky-400/50 bg-sky-400/10 p-4 shadow-sm ring-1 ring-sky-300/10"
+
+const editableTitleClass =
+  "mb-2 text-xs font-extrabold uppercase tracking-[0.16em] text-sky-300"
+
+const previewPanelClass =
+  "rounded-2xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-50"
 
 export default function ScorerClient({
   gameId,
@@ -128,6 +136,19 @@ export default function ScorerClient({
       if (idx >= settings.bet_ladder.length) idx = settings.bet_ladder.length - 1
       return Number(settings.bet_ladder[idx])
     }
+  const selectedBidOwnerName =
+    players.find((p) => p.id === bidOwner)?.display_name || ""
+
+  const opponentCount = Math.max(0, players.length - 1)
+
+  const previewText =
+    bidOwner && bidOwnerWon !== null
+      ? `${selectedBidOwnerName} ${
+          bidOwnerWon ? "wins" : "loses"
+        } ${money(resolvedBet)} against ${opponentCount} opponent${
+          opponentCount === 1 ? "" : "s"
+        }.`
+      : "Select a bid owner and outcome to preview this card."
 
     return Number(settings.base_bet)
   }, [betAmount, nextCardNumber, settings.bet_ladder, settings.base_bet])
@@ -337,15 +358,19 @@ export default function ScorerClient({
 
     {!handIsActuallyComplete ? (
       <section className="lp-card">
-        <div className="mb-4 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-4 py-3">
-          <div className="lp-interactive-title">Scoring Entry</div>
+        <div className="mb-4 rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-3">
+          <div className="lp-interactive-title">
+            Scoring Entry · Hand #{effectiveHandNumber} · Card {nextCardNumber} of{" "}
+            {settings.cards_per_hand}
+          </div>
           <div className="lp-interactive-help">
-            These are the live scoring controls for the current card.
+            Blue-highlighted areas are editable scoring fields for the current card.
           </div>
         </div>
 
         <div className="grid gap-5">
-          <div className="lp-interactive-panel">
+          <div className={editablePanelClass}>
+            <div className={editableTitleClass}>Step 1 · Bid Owner</div>
             <label className="lp-form-label">Bid Owner</label>
             <select
               className="lp-select-strong"
@@ -361,7 +386,8 @@ export default function ScorerClient({
             </select>
           </div>
 
-          <div className="lp-interactive-panel">
+          <div className={editablePanelClass}>
+            <div className={editableTitleClass}>Step 2 · Outcome</div>
             <label className="lp-form-label">Outcome</label>
             <div className="lp-toggle-row">
               <label className="flex items-center gap-2 text-slate-200">
@@ -389,7 +415,8 @@ export default function ScorerClient({
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="lp-interactive-panel">
+            <div className={editablePanelClass}>
+              <div className={editableTitleClass}>Step 3A · Bid Count</div>
               <label className="lp-form-label">Bid Count</label>
               <input
                 className="lp-input-strong"
@@ -405,7 +432,8 @@ export default function ScorerClient({
               />
             </div>
 
-            <div className="lp-interactive-panel">
+            <div className={editablePanelClass}>
+              <div className={editableTitleClass}>Step 3B · Bid Face</div>
               <label className="lp-form-label">Face</label>
               <select
                 className="lp-select-strong"
@@ -431,7 +459,8 @@ export default function ScorerClient({
             />
           </div>
 
-          <div className="lp-interactive-panel">
+          <div className={editablePanelClass}>
+            <div className={editableTitleClass}>Optional · Nut / Skunk</div>
             <label className="lp-form-label">Flags</label>
             <div className="lp-toggle-row">
               {bidOwnerWon === true && (
@@ -473,7 +502,12 @@ export default function ScorerClient({
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-
+          <div className={previewPanelClass}>
+            <div className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-200">
+              Card Preview
+            </div>
+            <div className="mt-1 font-semibold">{previewText}</div>
+          </div>
           <div className="lp-action-strip flex flex-wrap items-center gap-3 pt-2">
             <button
               onClick={submit}

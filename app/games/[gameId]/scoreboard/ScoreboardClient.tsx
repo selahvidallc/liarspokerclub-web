@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import GameSessionActions from "../GameSessionActions";
 import { canScore } from "@/lib/roles";
 
@@ -115,6 +116,8 @@ export default function ScoreboardClient({
   appUserId,
   appUserRole,
 }: Props) {
+  const router = useRouter();
+
   const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8610";
 
@@ -139,6 +142,14 @@ export default function ScoreboardClient({
   const [editAmount, setEditAmount] = useState("");
   const [editBid, setEditBid] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      router.refresh();
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [router]);
 
   function openEditCard(handNumber: number, card: CardView) {
     setEditingCard({ ...card, hand_number: handNumber });
@@ -203,6 +214,9 @@ export default function ScoreboardClient({
             {data.game_id}
           </code>
         </div>
+        <div className="mt-2 text-xs font-semibold text-emerald-300">
+          Live scoreboard: auto-refreshes every 5 seconds.
+        </div>        
       </div>
 
       <div className="grid gap-6">
