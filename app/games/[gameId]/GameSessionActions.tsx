@@ -34,6 +34,7 @@ export default function GameSessionActions({
   const canControl = canScore(appUserRole)
   const isFinalized = gameStatus === "FINALIZED"
   const canControlOpenGame = canControl && !isFinalized
+
   async function finalizeSession() {
     const ok = window.confirm(
       "Are you sure you want to end this session? Scoring will be locked."
@@ -76,6 +77,7 @@ export default function GameSessionActions({
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           Session Actions
         </div>
+
         <div className="mt-1 text-sm text-slate-700">
           {isFinalized
             ? "This session is finalized. Scoring is locked."
@@ -123,7 +125,7 @@ export default function GameSessionActions({
           </Link>
         )}
 
-        {!isSetupPage && (
+        {!isSetupPage && canControlOpenGame && (
           <Link
             href={`/games/${gameId}/setup?same_hand=1`}
             className="lp-button-secondary inline-flex items-center rounded-xl px-4 py-2.5 font-semibold"

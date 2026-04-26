@@ -116,6 +116,7 @@ export default function ScoreboardClient({
   appUserId,
   appUserRole,
 }: Props) {
+  
   const router = useRouter();
 
   const API_BASE =
@@ -532,6 +533,7 @@ export default function ScoreboardClient({
         handComplete={Boolean(progress?.hand_complete)}
         appUserId={appUserId}
         appUserRole={appUserRole}
+        gameStatus={game.status}
       />
 
       {editingCard && (
