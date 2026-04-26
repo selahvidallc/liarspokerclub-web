@@ -70,6 +70,7 @@ type HandProgress = {
 type Game = {
   id: string;
   scorekeeper_user_id: string;
+  status?: string;
 };
 
 type PlayerOption = {
