@@ -184,15 +184,23 @@ export default function ScorerClient({
     const ownerName =
       players.find((p) => p.id === bidOwner)?.display_name || "Unknown"
 
+    const opponentCount = Math.max(0, players.length - 1)
+    const totalAmount = resolvedBet * opponentCount
+
+    const bonusText = nut ? "NUT" : skunk ? "SKUNK" : "None"
+
     const confirmationLines = [
       `Bid Owner: ${ownerName}`,
       `Outcome: ${bidOwnerWon ? "Bid Owner WON" : "Bid Owner LOST"}`,
       `Bid: ${parsedCount}x${face}`,
-      `Dollar Amount: ${money(resolvedBet)}`,
+      `Base Amount: ${money(resolvedBet)}`,
+      `Players Impacted: ${opponentCount}`,
+      `Total Swing: ${money(totalAmount)}`,
+      `Bonus: ${bonusText}`,
     ]
 
     const ok = window.confirm(
-      `${confirmationLines.join("\n")}\n\nIs this correct?`
+      `Confirm Card\n\n${confirmationLines.join("\n")}\n\nIs this correct?`
     )
 
     if (!ok) {
@@ -230,11 +238,11 @@ export default function ScorerClient({
 
       const completed = Number(data.card_number) >= settings.cards_per_hand
 
-      if (completed) {
-        router.push(`/games/${gameId}/scoreboard?handComplete=1`)
-        router.refresh()
-        return
-      }
+      router.push(
+        `/games/${gameId}/scoreboard${completed ? "?handComplete=1" : ""}`
+      )
+      router.refresh()
+      return
 
       setMsg(
         `Saved card ${data.card_number} of ${settings.cards_per_hand} for Hand #${data.hand_number}.`
