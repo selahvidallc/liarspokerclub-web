@@ -81,7 +81,7 @@ export default function ChangeHandSetupClient({
   const router = useRouter()
 
   const [selectedUserId, setSelectedUserId] = useState("")
-  const [mode, setMode] = useState<"custom" | "preset">("custom")
+  const [mode, setMode] = useState<"custom" | "preset">("preset")
   const [selectedPresetId, setSelectedPresetId] = useState("")
   const [cardsPerHand, setCardsPerHand] = useState(String(currentCardsPerHand))
   const [baseBet, setBaseBet] = useState(currentBaseBet)
@@ -302,9 +302,9 @@ export default function ChangeHandSetupClient({
                 value={mode}
                 onChange={(e) => setMode(e.target.value as "custom" | "preset")}
               >
-                <option value="custom">Custom</option>
                 <option value="preset">Preset</option>
-              </select>
+                <option value="custom">Custom</option>
+               </select>
             </div>
 
             {mode === "preset" ? (
