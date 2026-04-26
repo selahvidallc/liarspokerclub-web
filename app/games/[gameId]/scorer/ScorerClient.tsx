@@ -133,9 +133,15 @@ export default function ScorerClient({
     if (settings.bet_ladder && settings.bet_ladder.length > 0) {
       let idx = nextCardNumber - 1
       if (idx < 0) idx = 0
-      if (idx >= settings.bet_ladder.length) idx = settings.bet_ladder.length - 1
+      if (idx >= settings.bet_ladder.length) {
+        idx = settings.bet_ladder.length - 1
+      }
       return Number(settings.bet_ladder[idx])
     }
+
+    return Number(settings.base_bet || 0)
+  }, [betAmount, nextCardNumber, settings.bet_ladder, settings.base_bet])
+
   const selectedBidOwnerName =
     players.find((p) => p.id === bidOwner)?.display_name || ""
 
@@ -149,9 +155,6 @@ export default function ScorerClient({
           opponentCount === 1 ? "" : "s"
         }.`
       : "Select a bid owner and outcome to preview this card."
-
-    return Number(settings.base_bet)
-  }, [betAmount, nextCardNumber, settings.bet_ladder, settings.base_bet])
 
   async function submit() {
     setMsg("")
