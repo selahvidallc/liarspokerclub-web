@@ -158,6 +158,11 @@ export default function DashboardPage() {
             <p className="mt-2 text-slate-300">
               Open your games, review completed sessions, and track your club play.
             </p>
+            <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-slate-200">
+              <strong className="text-white">Important:</strong> Liar&apos;s Poker Club is a
+              scorekeeping tool only. We do not facilitate gambling, hold funds, process
+              wagers, or settle payments between players.
+            </div>
           </div>
 
           <UserButton />
