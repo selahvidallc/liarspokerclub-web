@@ -69,7 +69,7 @@ export default function GameSessionActions({
         </div>
         <div className="mt-1 text-sm text-slate-700">
           {handComplete
-            ? "This hand is complete. Choose how to continue the session."
+            ? "This hand is complete. Create the next hand using the previous setup, or change players and hand type first."
             : "Continue scoring the current hand, review the scoreboard, or end the session."}
         </div>
       </div>
@@ -83,23 +83,13 @@ export default function GameSessionActions({
       <div className="flex flex-wrap gap-3">
         {canControl &&
           (handComplete ? (
-            <>
-              <button
-                onClick={playSameHandSamePlayers}
-                disabled={busy}
-                className="lp-button"
-              >
-                Play Same Hand Type / Same Players
-              </button>
-
-              <button
-                onClick={changePlayersOrHandType}
-                disabled={busy}
-                className="lp-button-secondary"
-              >
-                Change Players / Hand Type
-              </button>
-            </>
+            <button
+              onClick={continueToSetup}
+              disabled={busy}
+              className="lp-button"
+            >
+              Create New Hand | Change Players | Hand Type
+            </button>
           ) : (
             <button
               onClick={() => router.push(`/games/${gameId}/scorer`)}
