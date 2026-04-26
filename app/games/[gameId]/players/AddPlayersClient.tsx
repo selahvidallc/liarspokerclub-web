@@ -403,7 +403,7 @@ export default function AddPlayersClient({
                 </p>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+              <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
                 <select
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
@@ -424,10 +424,29 @@ export default function AddPlayersClient({
                 >
                   Add Player
                 </button>
+
+                <button
+                  onClick={openCreateModal}
+                  disabled={working || creatingPlayer}
+                  className="lp-button-secondary"
+                >
+                  Create New Player
+                </button>
               </div>
+
               <div className="mt-6">
                 <div className="mb-3 text-sm font-semibold text-slate-300">
                   Or select multiple players:
+                </div>
+
+                <div className="mb-4 flex flex-wrap gap-3">
+                  <button
+                    onClick={addMultiplePlayers}
+                    disabled={working || creatingPlayer || selectedUserIds.length === 0}
+                    className="lp-button"
+                  >
+                    Add Selected Players ({selectedUserIds.length})
+                  </button>
                 </div>
 
                 <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
@@ -461,24 +480,15 @@ export default function AddPlayersClient({
                   })}
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-4 flex flex-wrap gap-3">
                   <button
                     onClick={addMultiplePlayers}
-                    disabled={working || creatingPlayer}
+                    disabled={working || creatingPlayer || selectedUserIds.length === 0}
                     className="lp-button"
                   >
                     Add Selected Players ({selectedUserIds.length})
                   </button>
                 </div>
-              </div>
-              <div className="mt-4">
-                <button
-                  onClick={openCreateModal}
-                  disabled={working || creatingPlayer}
-                  className="lp-button-secondary"
-                >
-                  Create New Player
-                </button>
               </div>
             </section>
           )}
